@@ -1,0 +1,30 @@
+<resources>
+    <string name="login_cta">Entre com o Discord</string>
+    <string name="mood_online">Online</string>
+    <string name="mood_idle">Ausente</string>
+    <string name="mood_dnd">Não Perturbar</string>
+    <string name="common_cancel">Cancelar</string>
+    <string name="bridge_action_restart">Reiniciar</string>
+    <string name="bridge_action_exit">Sair</string>
+    <string name="you_sign_out">Sair</string>
+    <string name="setup_media_access_title">Acesso às notificações</string>
+    <string name="setup_media_access_blurb">Acesso às notificações é necessário para o app extrair informações de mídia.</string>
+    <string name="setup_post_notifications_title">Postar notificação</string>
+    <string name="setup_post_notifications_blurb">Conceder permissão para mostrar notificação</string>
+    <string name="setup_privacy_note">Este app não coleta nenhum dado do usuário.</string>
+    <string name="setup_required_header">Obrigatório</string>
+    <string name="setup_optional_header">Opcional</string>
+    <string name="facet_artist">Mostrar nome do artista</string>
+    <string name="facet_album">Mostrar nome do álbum</string>
+    <string name="facet_timeline">Ativar tempo de atividade</string>
+    <string name="facet_hide_paused">Esconder RPC ao pausar</string>
+    <string name="facet_song_as_title">Show Song as Title</string>
+    <string name="presence_players_search">Pesquisar…</string>
+    <string name="crash_title">O app crashou</string>
+    <string name="crash_share_cta">COMPARTILHAR LOGS</string>
+    <string name="bridge_idle">Ausente…</string>
+    <string name="tile_started_toast">RPC de mídia iniciado</string>
+    <string name="tile_stopped_toast">Todos os serviços foram parados</string>
+    <string name="tile_off_subtitle">Desativado</string>
+    <string name="tile_on_subtitle">Ligado</string>
+</resources>

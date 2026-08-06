@@ -1,0 +1,28 @@
+<resources>
+    <string name="login_cta">使用Discord登入</string>
+    <string name="mood_online">線上</string>
+    <string name="mood_idle">閒置</string>
+    <string name="mood_dnd">禁止打擾</string>
+    <string name="common_cancel">取消</string>
+    <string name="bridge_action_restart">重啟</string>
+    <string name="bridge_action_exit">離開</string>
+    <string name="you_sign_out">登出</string>
+    <string name="setup_media_access_title">通知存取權限</string>
+    <string name="setup_post_notifications_title">發送通知</string>
+    <string name="setup_post_notifications_blurb">授予顯示通知的權限</string>
+    <string name="setup_required_header">必須授予的權限</string>
+    <string name="setup_optional_header">可選授予的權限</string>
+    <string name="facet_artist">顯示作家的名字</string>
+    <string name="facet_album">顯示專輯名稱</string>
+    <string name="facet_timeline">顯示時間戳</string>
+    <string name="facet_hide_paused">暫停時隱藏 RPC</string>
+    <string name="facet_song_as_title">Show Song as Title</string>
+    <string name="presence_players_search">搜尋…</string>
+    <string name="crash_title">應用程式崩潰</string>
+    <string name="crash_share_cta">分享日誌</string>
+    <string name="bridge_idle">閒置中…</string>
+    <string name="tile_started_toast">已啟動媒體 RPC</string>
+    <string name="tile_stopped_toast">所有服務已暫停</string>
+    <string name="tile_off_subtitle">關閉</string>
+    <string name="tile_on_subtitle">開啟</string>
+</resources>

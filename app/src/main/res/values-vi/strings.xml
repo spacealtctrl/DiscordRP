@@ -1,0 +1,30 @@
+<resources>
+    <string name="login_cta">Đăng nhập bằng Discord</string>
+    <string name="mood_online">Trực tuyến</string>
+    <string name="mood_idle">Chờ</string>
+    <string name="mood_dnd">Vui Lòng Không Làm Phiền</string>
+    <string name="common_cancel">Hủy bỏ</string>
+    <string name="bridge_action_restart">Khởi chạy lại</string>
+    <string name="bridge_action_exit">Thoát</string>
+    <string name="you_sign_out">Đăng xuất</string>
+    <string name="setup_media_access_title">Quyền Đọc thông báo</string>
+    <string name="setup_media_access_blurb">Ứng dụng cần được cấp quyền Đọc thông báo để nhận thông tin về trình phát đa phương tiện.</string>
+    <string name="setup_post_notifications_title">Thông báo</string>
+    <string name="setup_post_notifications_blurb">Cấp quyền thông báo</string>
+    <string name="setup_privacy_note">Ứng dụng không thu thập dữ liệu người dùng</string>
+    <string name="setup_required_header">Bắt buộc</string>
+    <string name="setup_optional_header">Tùy chọn</string>
+    <string name="facet_artist">Hiện tên nghệ sĩ</string>
+    <string name="facet_album">Hiện tên album</string>
+    <string name="facet_timeline">Hiện thời gian</string>
+    <string name="facet_hide_paused">Ẩn hoạt động khi dừng</string>
+    <string name="facet_song_as_title">Show Song as Title</string>
+    <string name="presence_players_search">Tìm kiếm…</string>
+    <string name="crash_title">Lỗi nghiêm trọng</string>
+    <string name="crash_share_cta">CHIA SẺ BÁO CÁO LỖI</string>
+    <string name="bridge_idle">Đang ngưng…</string>
+    <string name="tile_started_toast">RPC Trình phát đã khởi chạy</string>
+    <string name="tile_stopped_toast">Đã dừng hoạt động</string>
+    <string name="tile_off_subtitle">Tắt</string>
+    <string name="tile_on_subtitle">Bật</string>
+</resources>

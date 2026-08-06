@@ -1,0 +1,30 @@
+<resources>
+    <string name="login_cta">Discord ile Giriş Yap</string>
+    <string name="mood_online">Çevrimiçi</string>
+    <string name="mood_idle">Boşta</string>
+    <string name="mood_dnd">Rahatsız Etmeyin</string>
+    <string name="common_cancel">İptal</string>
+    <string name="bridge_action_restart">Yeniden Başlat</string>
+    <string name="bridge_action_exit">Çıkış</string>
+    <string name="you_sign_out">Çıkış yap</string>
+    <string name="setup_media_access_title">Bildirim Erişim İzni</string>
+    <string name="setup_media_access_blurb">Medya bilgilerini almak için bildirim erişimi gereklidir.</string>
+    <string name="setup_post_notifications_title">Bildirim İzni</string>
+    <string name="setup_post_notifications_blurb">Bildirimlerin gösterilmesi için bildirim izni ver</string>
+    <string name="setup_privacy_note">Bu uygulama hiçbir kullanıcı verisi toplamaz</string>
+    <string name="setup_required_header">Zorunlu</string>
+    <string name="setup_optional_header">İsteğe Bağlı</string>
+    <string name="facet_artist">Sanatçı ismini göster</string>
+    <string name="facet_album">Albüm adını göster</string>
+    <string name="facet_timeline">Süreyi göster</string>
+    <string name="facet_hide_paused">Duraklatınca RPC\'yi gizle</string>
+    <string name="facet_song_as_title">Şarkıyı başlık olarak göster</string>
+    <string name="presence_players_search">Ara…</string>
+    <string name="crash_title">Uygulama Çöktü</string>
+    <string name="crash_share_cta">ÇÖKME KAYDINI PAYLAŞ</string>
+    <string name="bridge_idle">Boşta…</string>
+    <string name="tile_started_toast">Medya RPC başlatıldı</string>
+    <string name="tile_stopped_toast">Tüm servisler durduruldu</string>
+    <string name="tile_off_subtitle">kapalı</string>
+    <string name="tile_on_subtitle">Açık</string>
+</resources>

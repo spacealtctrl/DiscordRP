@@ -1,0 +1,30 @@
+<resources>
+    <string name="login_cta">Discord로 로그인</string>
+    <string name="mood_online">온라인</string>
+    <string name="mood_idle">자리비움</string>
+    <string name="mood_dnd">방해 금지</string>
+    <string name="common_cancel">취소</string>
+    <string name="bridge_action_restart">재시작</string>
+    <string name="bridge_action_exit">종료</string>
+    <string name="you_sign_out">로그아웃</string>
+    <string name="setup_media_access_title">알림 액세스 권한</string>
+    <string name="setup_media_access_blurb">앱에서 미디어 정보를 추출하려면 알림 액세스가 필요합니다.</string>
+    <string name="setup_post_notifications_title">알림 게시</string>
+    <string name="setup_post_notifications_blurb">알림을 표시할 권한을 부여하세요</string>
+    <string name="setup_privacy_note">이 앱은 사용자 데이터를 수집하지 않습니다.</string>
+    <string name="setup_required_header">필수</string>
+    <string name="setup_optional_header">선택</string>
+    <string name="facet_artist">아티스트 이름 활성화</string>
+    <string name="facet_album">앨범 이름 활성화</string>
+    <string name="facet_timeline">타임스탬프 활성화</string>
+    <string name="facet_hide_paused">일시 중지 시 RPC 숨기기</string>
+    <string name="facet_song_as_title">Show Song as Title</string>
+    <string name="presence_players_search">검색…</string>
+    <string name="crash_title">앱 충돌</string>
+    <string name="crash_share_cta">로그 공유</string>
+    <string name="bridge_idle">유휴 중…</string>
+    <string name="tile_started_toast">미디어 RPC가 시작되었습니다</string>
+    <string name="tile_stopped_toast">모든 서비스가 중지되었습니다</string>
+    <string name="tile_off_subtitle">끄기</string>
+    <string name="tile_on_subtitle">켜짐</string>
+</resources>

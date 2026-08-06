@@ -1,0 +1,30 @@
+<resources>
+    <string name="login_cta">เข้าสู่ระบบด้วย Discord</string>
+    <string name="mood_online">ออนไลน์</string>
+    <string name="mood_idle">ไม่อยู่</string>
+    <string name="mood_dnd">ห้ามรบกวน</string>
+    <string name="common_cancel">ยกเลิก</string>
+    <string name="bridge_action_restart">รีสตาร์ทใหม่</string>
+    <string name="bridge_action_exit">ออก</string>
+    <string name="you_sign_out">ออกจากระบบ</string>
+    <string name="setup_media_access_title">การอนุญาตการเข้าถึงการแจ้งเตือน</string>
+    <string name="setup_media_access_blurb">การอนุญาตเข้าถึงการแจ้งเตือนจะทำให้สามารถถึงข้อมูลจากสื่อแอปต่างๆได้ไงล่ะ!</string>
+    <string name="setup_post_notifications_title">การแจ้งเตือนโพสต์</string>
+    <string name="setup_post_notifications_blurb">ให้อนุญาตแอปแสดงการแจ้งเตือน</string>
+    <string name="setup_privacy_note">แอปนี้จะไม่เก็บข้อมูลส่วนตัวของท่านหรือลักลอบเอาข้อมูลของท่านระหว่างมีปาร์ตี้เฮฮา ใดๆทั้งสิ้น!</string>
+    <string name="setup_required_header">กฎข้อบังคับ</string>
+    <string name="setup_optional_header">เลือกเพิ่มเติม</string>
+    <string name="facet_artist">เปิดใช้งาน การแสดงชื่อของศิลปินสุดแสนวิเศษ</string>
+    <string name="facet_album">เปิดใช้งานชื่อศิลปิน</string>
+    <string name="facet_timeline">เปิดใช้งานการประทับเวลา</string>
+    <string name="facet_hide_paused">ซ่อน RPC ระหว่างหยุดการใช้งาน</string>
+    <string name="facet_song_as_title">แสดงชื่อเพลงเป็นชื่อหัวข้อ</string>
+    <string name="presence_players_search">ค้นหา…</string>
+    <string name="crash_title">แอปเกิดข้อผิดพลาด!</string>
+    <string name="crash_share_cta">แชร์ LOGS</string>
+    <string name="bridge_idle">กำลังว่าง…</string>
+    <string name="tile_started_toast">Media RPC เริ่มใช้งานไปแล้ว</string>
+    <string name="tile_stopped_toast">services ทั้งหมดหยุดการทำงานแล้ว</string>
+    <string name="tile_off_subtitle">ปิด</string>
+    <string name="tile_on_subtitle">เปิด</string>
+</resources>

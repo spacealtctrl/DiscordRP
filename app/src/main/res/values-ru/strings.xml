@@ -1,0 +1,30 @@
+<resources>
+    <string name="login_cta">Авторизоваться через Discord</string>
+    <string name="mood_online">Онлайн</string>
+    <string name="mood_idle">Не активен</string>
+    <string name="mood_dnd">Не беспокоить</string>
+    <string name="common_cancel">Отменить</string>
+    <string name="bridge_action_restart">Перезапустить</string>
+    <string name="bridge_action_exit">Выйти</string>
+    <string name="you_sign_out">Выйти из аккаунта</string>
+    <string name="setup_media_access_title">Разрешение на доступ к уведомлениям</string>
+    <string name="setup_media_access_blurb">Доступ к уведомлениям необходим для получения информации о медиа-контенте.</string>
+    <string name="setup_post_notifications_title">Доступ к отправке уведомлений</string>
+    <string name="setup_post_notifications_blurb">Выдайте право на отправку уведомлений</string>
+    <string name="setup_privacy_note">Данное приложение не собирает никакие пользовательские данные</string>
+    <string name="setup_required_header">Обязательно</string>
+    <string name="setup_optional_header">По желанию</string>
+    <string name="facet_artist">Включить имя артиста</string>
+    <string name="facet_album">Включить название альбома</string>
+    <string name="facet_timeline">Включить временные метки</string>
+    <string name="facet_hide_paused">Скрыть RPC при паузе</string>
+    <string name="facet_song_as_title">Показать песню в заголовке</string>
+    <string name="presence_players_search">Найти…</string>
+    <string name="crash_title">Приложение вылетело</string>
+    <string name="crash_share_cta">ПОДЕЛИТЬСЯ ЖУРНАЛАМИ</string>
+    <string name="bridge_idle">Ожидание…</string>
+    <string name="tile_started_toast">RPC медиа-контента запущено</string>
+    <string name="tile_stopped_toast">Все сервисы остановлены</string>
+    <string name="tile_off_subtitle">Отключено</string>
+    <string name="tile_on_subtitle">Включено</string>
+</resources>

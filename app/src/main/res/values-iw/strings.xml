@@ -1,0 +1,30 @@
+<resources>
+    <string name="login_cta">התחבר עם Discord</string>
+    <string name="mood_online">באינטרנט</string>
+    <string name="mood_idle">סרק</string>
+    <string name="mood_dnd">נא לא להפריע</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="bridge_action_restart">הפעלה מחדש</string>
+    <string name="bridge_action_exit">יְצִיאָה</string>
+    <string name="you_sign_out">התנתק</string>
+    <string name="setup_media_access_title">הרשאת גישה להתראות</string>
+    <string name="setup_media_access_blurb">יש צורך בגישה להודעות כדי שהאפליקציה תחלץ מידע על מדיה.</string>
+    <string name="setup_post_notifications_title">התראה על פוסט חדש</string>
+    <string name="setup_post_notifications_blurb">הענק הרשאה להצגת התראה</string>
+    <string name="setup_privacy_note">This app does not collect any user data</string>
+    <string name="setup_required_header">הֶכְרֵחִי</string>
+    <string name="setup_optional_header">אופציונלי</string>
+    <string name="facet_artist">הפעל שם אמן</string>
+    <string name="facet_album">הפעל שם אלבום</string>
+    <string name="facet_timeline">הפעל חותמות זמן</string>
+    <string name="facet_hide_paused">הסתר RPC בהשהיה</string>
+    <string name="facet_song_as_title">Show Song as Title</string>
+    <string name="presence_players_search">לְחַפֵּשׂ…</string>
+    <string name="crash_title">האפליקציה קרסה</string>
+    <string name="crash_share_cta">שתף יומנים</string>
+    <string name="bridge_idle">הִתבַּטְלוּת…</string>
+    <string name="tile_started_toast">RPC של המדיה הופעל</string>
+    <string name="tile_stopped_toast">כל השירותים נעצרו</string>
+    <string name="tile_off_subtitle">כבוי</string>
+    <string name="tile_on_subtitle">On</string>
+</resources>

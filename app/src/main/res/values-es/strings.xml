@@ -1,0 +1,30 @@
+<resources>
+    <string name="login_cta">Iniciar Sesión con Discord</string>
+    <string name="mood_online">En línea</string>
+    <string name="mood_idle">Inactivo</string>
+    <string name="mood_dnd">No Molestar</string>
+    <string name="common_cancel">Cancelar</string>
+    <string name="bridge_action_restart">Reiniciar</string>
+    <string name="bridge_action_exit">Salir</string>
+    <string name="you_sign_out">Cerrar Sesión</string>
+    <string name="setup_media_access_title">Permiso de Acceso a Notificaciones</string>
+    <string name="setup_media_access_blurb">Se necesita acceso a notificaciones para que la aplicación extraiga información de medios.</string>
+    <string name="setup_post_notifications_title">Publicar Notificación</string>
+    <string name="setup_post_notifications_blurb">Conceder Permiso para Mostrar Notificación</string>
+    <string name="setup_privacy_note">Esta aplicación no recopila ningún dato del usuario</string>
+    <string name="setup_required_header">Obligatorio</string>
+    <string name="setup_optional_header">Opcional</string>
+    <string name="facet_artist">Habilitar Nombre del Artista</string>
+    <string name="facet_album">Habilitar Nombre del Álbum</string>
+    <string name="facet_timeline">Habilitar Tiempos</string>
+    <string name="facet_hide_paused">Ocultar RPC en Pausa</string>
+    <string name="facet_song_as_title">Show Song as Title</string>
+    <string name="presence_players_search">Buscar…</string>
+    <string name="crash_title">Aplicación Bloqueada</string>
+    <string name="crash_share_cta">COMPARTIR REGISTROS</string>
+    <string name="bridge_idle">Inactivo…</string>
+    <string name="tile_started_toast">Media RPC iniciado</string>
+    <string name="tile_stopped_toast">Todos los servicios detenidos</string>
+    <string name="tile_off_subtitle">Apagado</string>
+    <string name="tile_on_subtitle">Encendido</string>
+</resources>

@@ -1,0 +1,30 @@
+<resources>
+    <string name="login_cta">Zaloguj Przez Discorda</string>
+    <string name="mood_online">Dostępny</string>
+    <string name="mood_idle">Zaraz wracam</string>
+    <string name="mood_dnd">Nie przeszkadzać</string>
+    <string name="common_cancel">Anuluj</string>
+    <string name="bridge_action_restart">Restartuj</string>
+    <string name="bridge_action_exit">Wyjdź</string>
+    <string name="you_sign_out">Wyloguj</string>
+    <string name="setup_media_access_title">Dostęp do powiadomień</string>
+    <string name="setup_media_access_blurb">Dostęp do powiadomień jest potrzebny by móc zebrać informacje multimediów.</string>
+    <string name="setup_post_notifications_title">Wyślij powiadomienie</string>
+    <string name="setup_post_notifications_blurb">Nadaj uprawnienia do pokazywania powiadomień</string>
+    <string name="setup_privacy_note">Ta aplikacja nie zbiera danych o użytkowniku</string>
+    <string name="setup_required_header">Obowiązkowy</string>
+    <string name="setup_optional_header">Opcjonalny</string>
+    <string name="facet_artist">Włącz Nazwę Artysty</string>
+    <string name="facet_album">Włącz Nazwę Albumu</string>
+    <string name="facet_timeline">Włącz Znaczniki Czasu</string>
+    <string name="facet_hide_paused">Ukryj RPC przy wstrzymaniu</string>
+    <string name="facet_song_as_title">Pokaż piosenkę jako tytuł</string>
+    <string name="presence_players_search">Szukaj…</string>
+    <string name="crash_title">Aplikacja Uległa Awarii</string>
+    <string name="crash_share_cta">UDOSTĘPNIJ DZIENNIK</string>
+    <string name="bridge_idle">Czuwanie…</string>
+    <string name="tile_started_toast">Uruchomiono RPC Multimediów</string>
+    <string name="tile_stopped_toast">Zatrzymano wszystkie usługi</string>
+    <string name="tile_off_subtitle">Wyłącz</string>
+    <string name="tile_on_subtitle">Włącz</string>
+</resources>

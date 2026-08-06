@@ -1,0 +1,30 @@
+<resources>
+    <string name="login_cta">Login met Discord</string>
+    <string name="mood_online">Online</string>
+    <string name="mood_idle">Idle</string>
+    <string name="mood_dnd">Do Not Disturb</string>
+    <string name="common_cancel">Annuleer</string>
+    <string name="bridge_action_restart">Restart</string>
+    <string name="bridge_action_exit">Exit</string>
+    <string name="you_sign_out">Logout</string>
+    <string name="setup_media_access_title">Notification Access Permission</string>
+    <string name="setup_media_access_blurb">Notification Access is needed for app to extract media information.</string>
+    <string name="setup_post_notifications_title">Post Notification</string>
+    <string name="setup_post_notifications_blurb">Grant Permission to Show Notification</string>
+    <string name="setup_privacy_note">Deze app verzamelt geen gebruikersgegevens</string>
+    <string name="setup_required_header">Mandatory</string>
+    <string name="setup_optional_header">Optional</string>
+    <string name="facet_artist">Laat artiest naam zien</string>
+    <string name="facet_album">Enable Album Name</string>
+    <string name="facet_timeline">Laat verstreken tijd zien</string>
+    <string name="facet_hide_paused">Hide RPC on Pause</string>
+    <string name="facet_song_as_title">Show Song as Title</string>
+    <string name="presence_players_search">Search…</string>
+    <string name="crash_title">De App is GeCrashed</string>
+    <string name="crash_share_cta">DEEL LOGS</string>
+    <string name="bridge_idle">Idling…</string>
+    <string name="tile_started_toast">Media RPC started</string>
+    <string name="tile_stopped_toast">All services stopped</string>
+    <string name="tile_off_subtitle">Off</string>
+    <string name="tile_on_subtitle">Aan</string>
+</resources>

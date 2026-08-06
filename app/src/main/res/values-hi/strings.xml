@@ -1,0 +1,30 @@
+<resources>
+    <string name="login_cta">डिस्कॉर्ड से लॉगिन करें</string>
+    <string name="mood_online">ऑनलाइन</string>
+    <string name="mood_idle">आइडल</string>
+    <string name="mood_dnd">परेशान मत करो</string>
+    <string name="common_cancel">रद्द करें</string>
+    <string name="bridge_action_restart">दोबारा शुरू करें</string>
+    <string name="bridge_action_exit">बाहर जाएं</string>
+    <string name="you_sign_out">लॉगआउट</string>
+    <string name="setup_media_access_title">नोटिफिकेशन एक्सेस की परमिशन</string>
+    <string name="setup_media_access_blurb">मीडिया जानकारी निकालने के लिए नोटिफिकेशन परमिशन चाहिए।</string>
+    <string name="setup_post_notifications_title">नोटिफिकेशन भेजना</string>
+    <string name="setup_post_notifications_blurb">नोटिफिकेशन दिखाने की परमिशन दीजिए</string>
+    <string name="setup_privacy_note">यह ऐप किसी भी यूज़र का डेटा इकट्ठा नहीं करता है</string>
+    <string name="setup_required_header">जरूरी</string>
+    <string name="setup_optional_header">चाहे तो भरे (जरूरी नहीं है)</string>
+    <string name="facet_artist">संगीतकार का नाम दिखाए</string>
+    <string name="facet_album">एल्बम का नाम दिखाए</string>
+    <string name="facet_timeline">गाना चलना का टाईम</string>
+    <string name="facet_hide_paused">रुकने पर  RPC छुपाएं</string>
+    <string name="facet_song_as_title">Show Song as Title</string>
+    <string name="presence_players_search">खोजें…</string>
+    <string name="crash_title">App crash हो गया</string>
+    <string name="crash_share_cta">लॉग्स भेजें</string>
+    <string name="bridge_idle">कुछ नहीं कर रहे हैं…</string>
+    <string name="tile_started_toast">मीडिया RPC शुरू हो गया है</string>
+    <string name="tile_stopped_toast">सभी सर्विस बंद हो गई है</string>
+    <string name="tile_off_subtitle">बंद</string>
+    <string name="tile_on_subtitle">चालू</string>
+</resources>

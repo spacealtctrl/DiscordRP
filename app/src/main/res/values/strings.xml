@@ -1,0 +1,143 @@
+<resources>
+    <string name="app_name">DiscordRP</string>
+    <string name="app_name_short">DiscordRP</string>
+
+    <string name="tab_home">Home</string>
+    <string name="tab_presence">Presence</string>
+    <string name="tab_alerts">Alerts</string>
+    <string name="tab_you">You</string>
+
+    <string name="home_greeting">Hey, %1$s</string>
+    <string name="home_greeting_anonymous">Hey there</string>
+    <string name="home_now_playing_header">Now playing</string>
+    <string name="home_general_header">General</string>
+    <string name="home_autostart_title">Start on boot</string>
+    <string name="home_autostart_blurb">Reconnect when the phone restarts.</string>
+    <string name="access_banner_title">Notification access needed</string>
+    <string name="access_banner_body">The app needs this to see what your music apps are playing.</string>
+    <string name="access_banner_action">Grant access</string>
+    <string name="bridge_card_on_title">Connected</string>
+    <string name="bridge_card_off_title">Not connected</string>
+    <string name="bridge_card_on_body">You are online. Messages and presence are working.</string>
+    <string name="bridge_card_linking_body">Connecting…</string>
+    <string name="bridge_card_off_body">Turn on to get messages and share your music.</string>
+    <string name="hero_listening_on">LISTENING ON %1$s</string>
+    <string name="hero_idle_title">Nothing playing</string>
+    <string name="hero_idle_body">Start some music and it shows up here.</string>
+    <string name="hero_idle_off_title">Not connected</string>
+    <string name="hero_idle_off_body">Turn on the switch above.</string>
+    <string name="hero_idle_private_title">Sharing is off</string>
+    <string name="hero_idle_private_body">You still get messages.</string>
+
+    <string name="mood_sheet_title">Set your status</string>
+    <string name="mood_online">Online</string>
+    <string name="mood_idle">Idle</string>
+    <string name="mood_dnd">Do Not Disturb</string>
+    <string name="mood_invisible">Invisible</string>
+
+    <string name="presence_title">Presence</string>
+    <string name="presence_subtitle">What your Discord profile shows while music plays.</string>
+    <string name="presence_master_toggle">Share my music</string>
+    <string name="presence_master_blurb">Shows what you are listening to on your profile.</string>
+    <string name="presence_mood_header">Your status</string>
+    <string name="presence_device_header">Device</string>
+    <string name="presence_mobile_toggle">Show mobile badge</string>
+    <string name="presence_mobile_blurb">A phone icon next to your name. Applies on the next connection.</string>
+    <string name="presence_facets_header">Show on the card</string>
+    <string name="facet_artist">Artist name</string>
+    <string name="facet_album">Album name</string>
+    <string name="facet_timeline">Progress bar</string>
+    <string name="facet_playback_glyph">Play/pause badge</string>
+    <string name="facet_app_icon">App icon</string>
+    <string name="facet_hide_paused">Hide while paused</string>
+    <string name="facet_song_as_title">Song as title</string>
+    <string name="facet_artist_as_title">Artist as title</string>
+    <string name="presence_players_header">Your players</string>
+    <string name="presence_players_search">Search…</string>
+
+    <string name="presence_players_empty_title">No apps match</string>
+    <string name="presence_players_empty_body">Clear the search to see your media apps.</string>
+
+    <string name="alerts_title">Alerts</string>
+    <string name="alerts_subtitle">Messages arrive over the same connection as your presence.</string>
+    <string name="alerts_master_toggle">Message notifications</string>
+    <string name="alerts_scope_header">Notify me for</string>
+    <string name="scope_everything">Everything</string>
+    <string name="scope_everything_blurb">Every message in every server.</string>
+    <string name="scope_mentions">Mentions and DMs</string>
+    <string name="scope_mentions_blurb">Pings, replies and direct messages.</string>
+    <string name="scope_dms">DMs only</string>
+    <string name="scope_dms_blurb">Direct messages only.</string>
+    <string name="alerts_filters_header">Filters</string>
+    <string name="alerts_skip_bots">Ignore bots</string>
+    <string name="alerts_clear_read">Clear when read elsewhere</string>
+    <string name="alerts_clear_read_blurb">Dismiss an alert here once you read the chat on another device.</string>
+
+    <string name="you_title">You</string>
+    <string name="you_subtitle">How your profile looks to everyone else.</string>
+    <string name="you_offline_note">Showing saved details. Could not reach Discord.</string>
+    <string name="you_session_header">Session</string>
+    <string name="you_sign_out">Sign out</string>
+    <string name="you_sign_out_blurb">Clears everything the app stored on this device.</string>
+    <string name="you_app_header">App</string>
+    <string name="you_check_updates">Check for updates</string>
+    <string name="you_footer_version">DiscordRP v%1$s</string>
+    <string name="update_action">Update to %1$s</string>
+    <string name="update_downloading">Downloading update…</string>
+    <string name="update_dialog_title">Updates</string>
+    <string name="update_dialog_current">DiscordRP is up to date.</string>
+    <string name="update_dialog_failed">Could not fetch the update. Try again later.</string>
+    <string name="update_banner_title">Update available</string>
+    <string name="update_banner_body">DiscordRP %1$s is ready to download and install.</string>
+    <string name="update_banner_action">Update</string>
+    <string name="you_sign_out_confirm_title">Sign out?</string>
+    <string name="you_sign_out_confirm_body">Your login and settings on this device will be cleared.</string>
+    <string name="you_signed_out_title">Not signed in</string>
+    <string name="you_signed_out_body">Sign in with Discord to see your profile.</string>
+    <string name="profile_bio_label">About me</string>
+    <string name="profile_member_since_label">Member since</string>
+    <string name="profile_listening_heading">Listening to %1$s</string>
+
+    <string name="setup_title">Setup</string>
+    <string name="setup_subtitle">Three steps and you are done.</string>
+    <string name="setup_required_header">Required</string>
+    <string name="setup_optional_header">Optional</string>
+    <string name="setup_media_access_title">Notification access</string>
+    <string name="setup_media_access_blurb">Lets the app see what your music apps are playing.</string>
+    <string name="setup_post_notifications_title">Show notifications</string>
+    <string name="setup_post_notifications_blurb">So messages can reach you.</string>
+    <string name="setup_sign_in_title">Sign in with Discord</string>
+    <string name="setup_sign_in_blurb">Your login stays on this device.</string>
+    <string name="setup_battery_title">Unrestricted battery</string>
+    <string name="setup_battery_blurb">Keeps the connection alive while the screen is off.</string>
+    <string name="setup_privacy_note">This app collects no data. Your login never leaves your phone.</string>
+    <string name="setup_finish_cta">Done</string>
+
+    <string name="login_cta">Sign in with Discord</string>
+    <string name="login_tagline">Push notifications and rich presence, without Google.</string>
+    <string name="login_token_note">You sign in on Discord\'s own page. Your login is stored only on this device.</string>
+    <string name="login_failed_title">Sign in failed</string>
+    <string name="login_failed_body">Discord did not accept the login. Try again.</string>
+    <string name="common_back">Back</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_ok">OK</string>
+
+    <string name="bridge_channel_name">Connection</string>
+    <string name="bridge_channel_desc">Keeps the Discord connection alive in the background</string>
+    <string name="bridge_idle">Connected</string>
+    <string name="bridge_action_restart">Restart</string>
+    <string name="bridge_action_exit">Exit</string>
+    <string name="bridge_sign_in_again">Discord rejected your login. Open the app and sign in again.</string>
+
+    <string name="tile_label" translatable="false">DiscordRP</string>
+    <string name="tile_started_toast">Connected</string>
+    <string name="tile_stopped_toast">Disconnected</string>
+    <string name="tile_on_subtitle">On</string>
+    <string name="tile_off_subtitle">Off</string>
+
+    <string name="crash_title">Something went wrong</string>
+    <string name="crash_subtitle">The app had to stop. The details below explain why.</string>
+    <string name="crash_share_cta">Share report</string>
+    <string name="crash_close_cta">Close</string>
+    <string name="crash_trace_header">Stack trace</string>
+</resources>

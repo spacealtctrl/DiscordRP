@@ -1,0 +1,30 @@
+<resources>
+    <string name="login_cta">تسجيل الدخول عبر ديسكورد</string>
+    <string name="mood_online">متصل</string>
+    <string name="mood_idle">خامل</string>
+    <string name="mood_dnd">عدم الإزعاج</string>
+    <string name="common_cancel">إلغاء</string>
+    <string name="bridge_action_restart">إعادة تشغيل</string>
+    <string name="bridge_action_exit">خروج</string>
+    <string name="you_sign_out">تسجيل الخروج</string>
+    <string name="setup_media_access_title">إذن الوصول إلى الإشعارات</string>
+    <string name="setup_media_access_blurb">الوصول إلى الإشعارات مطلوب للتطبيق لاستخراج معلومات الوسائط.</string>
+    <string name="setup_post_notifications_title">نشر الإشعار</string>
+    <string name="setup_post_notifications_blurb">منح إذن لعرض الإشعارات</string>
+    <string name="setup_privacy_note">هذا التطبيق لا يجمع أي بيانات مستخدم</string>
+    <string name="setup_required_header">إلزامي</string>
+    <string name="setup_optional_header">اختياري</string>
+    <string name="facet_artist">تفعيل اسم الفنان</string>
+    <string name="facet_album">تفعيل اسم الألبوم</string>
+    <string name="facet_timeline">تفعيل الطوابع الزمنية</string>
+    <string name="facet_hide_paused">إخفاء RPC عند الإيقاف المؤقت</string>
+    <string name="facet_song_as_title">Show Song as Title</string>
+    <string name="presence_players_search">بحث...</string>
+    <string name="crash_title">تعطل التطبيق</string>
+    <string name="crash_share_cta">مشاركة السجلات</string>
+    <string name="bridge_idle">خامل...</string>
+    <string name="tile_started_toast">تم بدء RPC الوسائط</string>
+    <string name="tile_stopped_toast">تم إيقاف جميع الخدمات</string>
+    <string name="tile_off_subtitle">إيقاف</string>
+    <string name="tile_on_subtitle">تشغيل</string>
+</resources>
