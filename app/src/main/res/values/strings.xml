@@ -52,6 +52,11 @@
     <string name="facet_hide_paused">Hide while paused</string>
     <string name="facet_song_as_title">Song as title</string>
     <string name="facet_artist_as_title">Artist as title</string>
+    <string name="presence_details_header">Song details</string>
+    <string name="presence_tidy_toggle">Clean up song details</string>
+    <string name="presence_tidy_blurb">Looks up the real title, artist and album for videos, so YouTube and NewPipe stop showing the uploader and the app name.</string>
+    <string name="presence_deezer_toggle">Use Deezer as a backup</string>
+    <string name="presence_deezer_blurb">Only asked when MusicBrainz cannot name the album. Turn off to keep lookups to MusicBrainz alone.</string>
     <string name="presence_players_header">Your players</string>
     <string name="presence_players_search">Search…</string>
 

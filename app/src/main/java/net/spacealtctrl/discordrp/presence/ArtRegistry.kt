@@ -10,6 +10,7 @@ import net.spacealtctrl.discordrp.discord.DiscordApi
 import net.spacealtctrl.discordrp.log.AppLog
 import net.spacealtctrl.discordrp.settings.Stash
 import javax.inject.Inject
+import javax.inject.Singleton
 
 sealed interface ArtSource {
     data class Remote(val url: String, val cacheKey: String) : ArtSource
@@ -18,11 +19,14 @@ sealed interface ArtSource {
         val cacheKey: String,
         val artist: String? = null,
         val album: String? = null,
+        val releaseGroupId: String? = null,
+        val directUrl: String? = null,
     ) : ArtSource
 
     data class AppIcon(val packageName: String) : ArtSource
 }
 
+@Singleton
 class ArtRegistry @Inject constructor(
     @ApplicationContext private val context: Context,
     private val api: DiscordApi,
@@ -39,7 +43,10 @@ class ArtRegistry @Inject constructor(
 
     private suspend fun resolveCover(cover: ArtSource.Cover): String? {
         stash.coverAssets[cover.cacheKey]?.let { return it }
-        val url = coverLookup.coverUrl(cover.artist, cover.album) ?: return null
+        val url = cover.releaseGroupId?.let(coverLookup::coverUrlForGroup)
+            ?: cover.directUrl
+            ?: coverLookup.coverUrl(cover.artist, cover.album)
+            ?: return null
         return register(url, cover.cacheKey)
     }
 

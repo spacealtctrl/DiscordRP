@@ -5,12 +5,12 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.url
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.spacealtctrl.discordrp.log.AppLog
+import net.spacealtctrl.discordrp.presence.catalog.RateGate
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,12 +29,11 @@ internal data class BrainzGroup(
 @Singleton
 class CoverLookup @Inject constructor(
     private val http: HttpClient,
+    private val gate: RateGate,
     private val log: AppLog,
 ) {
-    private val brainzGate = Mutex()
-
-    @Volatile
-    private var lastBrainzCall = 0L
+    fun coverUrlForGroup(releaseGroupId: String): String =
+        "$COVER_ART_ARCHIVE/release-group/$releaseGroupId/front"
 
     suspend fun coverUrl(artist: String?, album: String?): String? {
         val title = tidy(album) ?: return null
@@ -54,7 +53,7 @@ class CoverLookup @Inject constructor(
         }
         repeat(BRAINZ_ATTEMPTS) { attempt ->
             val outcome = runCatching {
-                politeBrainzPause()
+                gate.await(RateGate.MUSICBRAINZ, RateGate.MUSICBRAINZ_INTERVAL_MS)
                 val search: BrainzSearch = http.get {
                     url("$MUSICBRAINZ/release-group/")
                     header("User-Agent", AGENT)
@@ -68,17 +67,12 @@ class CoverLookup @Inject constructor(
             }
             outcome.getOrNull()?.let { return it }
             outcome.exceptionOrNull()?.let {
+                if (it is CancellationException) throw it
                 log.warn(TAG, "MusicBrainz attempt ${attempt + 1} failed: ${it::class.java.simpleName}")
                 if (attempt < BRAINZ_ATTEMPTS - 1) delay(BRAINZ_RETRY_MS)
             } ?: return null
         }
         return null
-    }
-
-    private suspend fun politeBrainzPause() = brainzGate.withLock {
-        val since = System.currentTimeMillis() - lastBrainzCall
-        if (since in 0 until BRAINZ_INTERVAL_MS) delay(BRAINZ_INTERVAL_MS - since)
-        lastBrainzCall = System.currentTimeMillis()
     }
 
     private fun tidy(value: String?): String? = value
@@ -95,7 +89,6 @@ class CoverLookup @Inject constructor(
         const val COVER_ART_ARCHIVE = "https://coverartarchive.org"
         const val AGENT = "DiscordRP/2.0 ( https://github.com/spacealtctrl/DiscordRP )"
 
-        const val BRAINZ_INTERVAL_MS = 1_100L
         const val BRAINZ_ATTEMPTS = 3
         const val BRAINZ_RETRY_MS = 1_500L
         const val MIN_SCORE = 70

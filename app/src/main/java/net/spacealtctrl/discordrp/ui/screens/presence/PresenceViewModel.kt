@@ -51,6 +51,8 @@ data class PresenceUiState(
     val sharing: Boolean = true,
     val mood: Mood = Mood.ONLINE,
     val mobileBadge: Boolean = true,
+    val tidyMetadata: Boolean = true,
+    val deezerFallback: Boolean = true,
     val facets: Map<ShareFacet, Boolean> = emptyMap(),
     val players: List<PlayerChoice> = emptyList(),
     val chosenCount: Int = 0,
@@ -106,6 +108,8 @@ class PresenceViewModel @Inject constructor(
             sharing = stash.presenceEnabled,
             mood = stash.mood,
             mobileBadge = stash.mobileBadge,
+            tidyMetadata = stash.tidyMetadata,
+            deezerFallback = stash.deezerFallback,
             facets = ShareFacet.entries.associateWith { facetValue(it) },
             players = players,
             chosenCount = chosen.size,
@@ -177,6 +181,16 @@ class PresenceViewModel @Inject constructor(
                 appContext.startForegroundService(intent)
             }
         }
+    }
+
+    fun setTidyMetadata(on: Boolean) {
+        stash.tidyMetadata = on
+        nudgeBridge()
+    }
+
+    fun setDeezerFallback(on: Boolean) {
+        stash.deezerFallback = on
+        nudgeBridge()
     }
 
     fun setTitleMode(mode: TitleMode) {

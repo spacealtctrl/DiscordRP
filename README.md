@@ -24,6 +24,7 @@ play shows on your profile.
 
 - [x] DMs and mentions as notifications
 - [x] Music rich presence from any player, with album art
+- [x] Cleans up song details from YouTube and NewPipe, so the uploader stops showing as the artist
 - [x] Choose what notifies you: everything, mentions and DMs, or DMs only
 - [x] Set your status and mobile badge from your phone
 - [x] Starts on boot and stays connected
@@ -59,6 +60,11 @@ reason messages stop arriving while the screen is off.
 No analytics, no crash reporting, and no server in the middle. The app talks to Discord,
 MusicBrainz, and the Cover Art Archive directly. Your login stays on the device and is
 removed by signing out.
+
+When a video app reports a song badly, the song and artist names are sent to MusicBrainz to
+find out what is actually playing. Deezer is asked the same question only when MusicBrainz
+cannot name the record, and never otherwise. Nothing identifying goes with either request, and
+both can be turned off under **Presence, Song details**.
 
 ## Credits
 

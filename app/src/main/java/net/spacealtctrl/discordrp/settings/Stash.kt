@@ -84,6 +84,14 @@ class Stash private constructor(context: Context) {
         get() = prefs.getBoolean(KEY_HIDE_PAUSED, false)
         set(value) = write { putBoolean(KEY_HIDE_PAUSED, value) }
 
+    var tidyMetadata: Boolean
+        get() = prefs.getBoolean(KEY_TIDY_METADATA, true)
+        set(value) = write { putBoolean(KEY_TIDY_METADATA, value) }
+
+    var deezerFallback: Boolean
+        get() = prefs.getBoolean(KEY_DEEZER_FALLBACK, true)
+        set(value) = write { putBoolean(KEY_DEEZER_FALLBACK, value) }
+
     var songAsTitle: Boolean
         get() = prefs.getBoolean(KEY_TITLE_SONG, false)
         set(value) = write { putBoolean(KEY_TITLE_SONG, value) }
@@ -182,6 +190,8 @@ class Stash private constructor(context: Context) {
         private const val KEY_SHOW_APP_ICON = "presence.show_app_icon"
         private const val KEY_SHOW_TIMELINE = "presence.show_timeline"
         private const val KEY_HIDE_PAUSED = "presence.hide_when_paused"
+        private const val KEY_TIDY_METADATA = "presence.tidy_metadata"
+        private const val KEY_DEEZER_FALLBACK = "presence.deezer_fallback"
         private const val KEY_TITLE_SONG = "presence.song_as_title"
         private const val KEY_TITLE_ARTIST = "presence.artist_as_title"
         private const val KEY_PLAYERS = "presence.players"
@@ -242,7 +252,20 @@ class Stash private constructor(context: Context) {
             "com.google.android.youtube.googletv",
         )
 
+        private val ALT_YOUTUBE_APPS = setOf(
+            "org.schabi.newpipe",
+            "org.polymorphicshade.tubular",
+            "org.wisso.newpipematerial",
+            "InfinityLoop1309.NewPipeEnhanced",
+            "com.github.libretube",
+            "com.futo.platformplayer",
+            "free.rm.skytube",
+            "free.rm.skytube.oss",
+            "free.rm.skytube.extra",
+            "com.kapp.youtube.final",
+        )
+
         val DEFAULT_PLAYERS: Set<String> =
-            STREAMING_SERVICES + LOCAL_PLAYERS + YOUTUBE_APPS + VIDEO_APPS
+            STREAMING_SERVICES + LOCAL_PLAYERS + YOUTUBE_APPS + VIDEO_APPS + ALT_YOUTUBE_APPS
     }
 }
