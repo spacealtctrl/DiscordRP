@@ -45,7 +45,6 @@ import net.spacealtctrl.discordrp.presence.BridgeFeed
 import net.spacealtctrl.discordrp.presence.NowPlaying
 import net.spacealtctrl.discordrp.presence.PlaybackScanner
 import net.spacealtctrl.discordrp.presence.PresenceComposer
-import net.spacealtctrl.discordrp.presence.TrackResolver
 import net.spacealtctrl.discordrp.settings.Stash
 import javax.inject.Inject
 
@@ -54,7 +53,6 @@ class BridgeService : Service() {
     @Inject lateinit var stash: Stash
     @Inject lateinit var scanner: PlaybackScanner
     @Inject lateinit var composer: PresenceComposer
-    @Inject lateinit var resolver: TrackResolver
     @Inject lateinit var artRegistry: ArtRegistry
     @Inject lateinit var notifier: InboxNotifier
     @Inject lateinit var log: AppLog
@@ -91,7 +89,6 @@ class BridgeService : Service() {
         stash.purgeStaleArtCaches()
         holdWakeLock()
         openGateway()
-        watchLookups()
         watchMediaSessions()
         watchNetwork()
         startCheckupTicker()
@@ -128,7 +125,6 @@ class BridgeService : Service() {
         notifier.reset()
         refreshJob?.cancel()
         redialJob?.cancel()
-        resolver.abandonLookups()
         scope.cancel()
         gateway?.shutdown()
         gateway = null
@@ -181,12 +177,6 @@ class BridgeService : Service() {
                 .build(),
         )
         stopSelf()
-    }
-
-    private fun watchLookups() {
-        scope.launch {
-            resolver.resolved.collect { scheduleRefresh(delayMs = 0) }
-        }
     }
 
     private fun watchMediaSessions() {
@@ -303,19 +293,16 @@ class BridgeService : Service() {
     }
 
     private suspend fun refresh() {
-        val scanned = scanner.currentTrack()
+        val track = scanner.currentTrack()
+        notificationManager().notify(STATUS_NOTICE_ID, statusNotification(track))
 
-        if (!stash.presenceEnabled || scanned == null) {
-            notificationManager().notify(STATUS_NOTICE_ID, statusNotification(scanned))
-            if (scanned == null) log.debug(TAG, "Nothing playing; clearing the activity")
+        if (!stash.presenceEnabled || track == null) {
+            if (track == null) log.debug(TAG, "Nothing playing; clearing the activity")
             BridgeFeed.trackChanged(null)
             gateway?.publish(composer.quietUpdate())
             return
         }
 
-        val track = resolver.repair(scanned)
-
-        notificationManager().notify(STATUS_NOTICE_ID, statusNotification(track))
         BridgeFeed.trackChanged(track)
         gateway?.publish(composer.listeningUpdate(track))
     }
@@ -351,6 +338,10 @@ class BridgeService : Service() {
             .setSmallIcon(R.drawable.ic_bridge_glyph)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
+            .setShowWhen(false)
+            .setUsesChronometer(false)
+            .setSilent(true)
+            .setPriority(NotificationCompat.PRIORITY_MIN)
             .addAction(0, getString(R.string.bridge_action_restart), restart)
             .addAction(0, getString(R.string.bridge_action_exit), exit)
     }
@@ -371,10 +362,12 @@ class BridgeService : Service() {
         val channel = NotificationChannel(
             STATUS_CHANNEL_ID,
             getString(R.string.bridge_channel_name),
-            NotificationManager.IMPORTANCE_LOW,
+            NotificationManager.IMPORTANCE_MIN,
         ).apply {
             description = getString(R.string.bridge_channel_desc)
             setShowBadge(false)
+            enableVibration(false)
+            setSound(null, null)
         }
         notificationManager().createNotificationChannel(channel)
     }
@@ -403,7 +396,7 @@ class BridgeService : Service() {
         const val ACTION_REFRESH = "net.spacealtctrl.discordrp.bridge.REFRESH"
         const val ACTION_CHECKUP = "net.spacealtctrl.discordrp.bridge.CHECKUP"
 
-        const val STATUS_CHANNEL_ID = "bridge.status"
+        const val STATUS_CHANNEL_ID = "bridge.status.quiet"
         private const val STATUS_NOTICE_ID = 41_002
 
         private const val WAKELOCK_TAG = "discordrp:bridge"

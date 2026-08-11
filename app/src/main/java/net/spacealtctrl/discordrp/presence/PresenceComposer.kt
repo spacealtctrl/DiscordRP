@@ -69,13 +69,7 @@ class PresenceComposer @Inject constructor(
             cacheKey = coverKey(track),
             artist = track.albumArtist ?: track.artist,
             album = track.album,
-            releaseGroupId = track.releaseGroupId,
-            directUrl = track.coverUrl,
-        ).takeIf {
-            !track.album.isNullOrBlank() ||
-                track.releaseGroupId != null ||
-                track.coverUrl != null
-        }
+        ).takeIf { !track.album.isNullOrBlank() }
         val icon = ArtSource.AppIcon(track.appPackage).takeIf { stash.showAppIcon }
 
         val coverRef = artRegistry.resolve(cover)
@@ -101,8 +95,8 @@ class PresenceComposer @Inject constructor(
         return ArtSource.Remote(url = "$GLYPH_BASE/$name.png", cacheKey = "glyph:$name")
     }
 
-    private fun coverKey(track: NowPlaying): String = track.releaseGroupId?.let { "rg:$it" }
-        ?: "${track.albumArtist ?: track.artist}|${track.album}".lowercase()
+    private fun coverKey(track: NowPlaying): String =
+        "${track.albumArtist ?: track.artist}|${track.album}".lowercase()
 
     companion object {
         const val LISTENING = 2
@@ -131,7 +125,7 @@ class PresenceComposer @Inject constructor(
                 name = artist?.takeIf { it.isNotBlank() } ?: title,
                 details = title,
                 state = artist.orEmpty(),
-                largeText = album,
+                largeText = album ?: appLabel,
             )
             songAsTitle -> ActivityLines(
                 name = title,

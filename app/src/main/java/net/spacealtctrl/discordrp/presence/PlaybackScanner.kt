@@ -40,10 +40,7 @@ class PlaybackScanner @Inject constructor(
         if (stash.hideWhenPaused && idle) return null
 
         val metadata = controller.metadata ?: return null
-        val title = metadata.firstText(
-            MediaMetadata.METADATA_KEY_TITLE,
-            MediaMetadata.METADATA_KEY_DISPLAY_TITLE,
-        ) ?: return null
+        val title = metadata.getString(MediaMetadata.METADATA_KEY_TITLE) ?: return null
         val timeline = timeline(controller, playing, metadata)
 
         return NowPlaying(
@@ -66,8 +63,6 @@ class PlaybackScanner @Inject constructor(
             stopped = state == PlaybackState.STATE_STOPPED,
             startedAtMillis = timeline?.first,
             endsAtMillis = timeline?.second,
-            durationMillis = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION)
-                .takeIf { it > 0L },
         )
     }
 

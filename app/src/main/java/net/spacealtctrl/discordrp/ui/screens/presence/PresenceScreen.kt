@@ -18,13 +18,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.Apps
-import androidx.compose.material.icons.rounded.AutoFixHigh
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.PauseCircle
 import androidx.compose.material.icons.rounded.PhoneAndroid
 import androidx.compose.material.icons.rounded.PlayCircle
-import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.Schedule
 import androidx.compose.material.icons.rounded.Title
 import androidx.compose.material3.MaterialTheme
@@ -147,37 +145,6 @@ fun PresenceScreen(viewModel: PresenceViewModel = hiltViewModel()) {
             }
 
             if (state.sharing) {
-                item {
-                    SectionHeader(stringResource(R.string.presence_details_header))
-                    Cluster {
-                        ToggleRow(
-                            title = stringResource(R.string.presence_tidy_toggle),
-                            subtitle = stringResource(R.string.presence_tidy_blurb),
-                            icon = Icons.Rounded.AutoFixHigh,
-                            checked = state.tidyMetadata,
-                            onToggle = { viewModel.setTidyMetadata(!state.tidyMetadata) },
-                        )
-                        AnimatedVisibility(
-                            visible = state.tidyMetadata,
-                            enter = fadeIn(tween(Pace.QUICK)) +
-                                expandVertically(tween(Pace.EASY, easing = Pace.settle)),
-                            exit = fadeOut(tween(Pace.BLINK)) +
-                                shrinkVertically(tween(Pace.QUICK, easing = Pace.dart)),
-                        ) {
-                            Column {
-                                RowRule()
-                                ToggleRow(
-                                    title = stringResource(R.string.presence_deezer_toggle),
-                                    subtitle = stringResource(R.string.presence_deezer_blurb),
-                                    icon = Icons.Rounded.Public,
-                                    checked = state.deezerFallback,
-                                    onToggle = { viewModel.setDeezerFallback(!state.deezerFallback) },
-                                )
-                            }
-                        }
-                    }
-                }
-
                 item {
                     SectionHeader(
                         stringResource(R.string.presence_players_header),

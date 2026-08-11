@@ -16,9 +16,6 @@ data class NowPlaying(
     val stopped: Boolean = false,
     val startedAtMillis: Long? = null,
     val endsAtMillis: Long? = null,
-    val durationMillis: Long? = null,
-    val releaseGroupId: String? = null,
-    val coverUrl: String? = null,
 ) {
     val hasTimeline: Boolean get() = startedAtMillis != null
 }

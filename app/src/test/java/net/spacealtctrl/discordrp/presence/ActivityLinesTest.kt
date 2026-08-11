@@ -1,7 +1,6 @@
 package net.spacealtctrl.discordrp.presence
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 
 class ActivityLinesTest {
@@ -60,19 +59,6 @@ class ActivityLinesTest {
         )
         assertEquals("Karry On", lines.name)
         assertEquals("", lines.state)
-        assertNull(lines.largeText)
-    }
-
-    @Test
-    fun `the album caption never falls back to the app name`() {
-        val lines = PresenceComposer.arrangeLines(
-            title = "Blinding Lights",
-            artist = "The Weeknd",
-            album = null,
-            appLabel = "NewPipe",
-            songAsTitle = false,
-            artistAsTitle = true,
-        )
-        assertNull(lines.largeText)
+        assertEquals("Symfonium", lines.largeText)
     }
 }
