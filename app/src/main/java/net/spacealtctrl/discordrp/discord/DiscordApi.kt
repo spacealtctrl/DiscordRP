@@ -37,6 +37,17 @@ data class GuildMembership(
 )
 
 @Serializable
+private data class OutgoingMessage(
+    val content: String,
+    val tts: Boolean = false,
+)
+
+@Serializable
+private data class ReadReceipt(
+    val token: String? = null,
+)
+
+@Serializable
 data class HostedAsset(
     @SerialName("external_asset_path") val path: String,
     val url: String,
@@ -63,6 +74,26 @@ class DiscordApi @Inject constructor(
 
     suspend fun myMembership(guildId: String): Result<GuildMembership> = call {
         http.get { url("$base/users/@me/guilds/$guildId/member"); sign() }.expect()
+    }
+
+    suspend fun sendMessage(channelId: String, content: String): Result<Unit> = call {
+        val response = http.post {
+            url("$base/channels/$channelId/messages")
+            sign()
+            contentType(ContentType.Application.Json)
+            setBody(OutgoingMessage(content = content))
+        }
+        response.raiseForStatus()
+    }
+
+    suspend fun markRead(channelId: String, messageId: String): Result<Unit> = call {
+        val response = http.post {
+            url("$base/channels/$channelId/messages/$messageId/ack")
+            sign()
+            contentType(ContentType.Application.Json)
+            setBody(ReadReceipt())
+        }
+        response.raiseForStatus()
     }
 
     suspend fun hostedAssetFor(imageUrl: String): Result<String> = call {

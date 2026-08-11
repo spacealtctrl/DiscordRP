@@ -64,6 +64,10 @@
             android:exported="false" />
 
         <receiver
+            android:name=".inbox.InboxReplyReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".service.StartOnBootReceiver"
             android:enabled="true"
             android:exported="true">

@@ -6,9 +6,11 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.core.app.Person
+import androidx.core.app.RemoteInput
 import androidx.core.content.LocusIdCompat
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
@@ -103,7 +105,8 @@ class InboxNotifier @Inject constructor(
 
         val style = NotificationCompat.MessagingStyle(ME)
         thread.forEach { line ->
-            style.addMessage(line.body, line.at, personOf(line, portraits[line.portraitUrl]))
+            val speaker = if (line.fromMe) null else personOf(line, portraits[line.portraitUrl])
+            style.addMessage(line.body, line.at, speaker)
         }
         if (!message.isDm) {
             style.isGroupConversation = true
@@ -113,6 +116,8 @@ class InboxNotifier @Inject constructor(
         val newest = thread.last()
         val speaker = personOf(newest, portraits[newest.portraitUrl])
         publishShortcut(channelId, message, speaker, title)
+
+        val replyTo = if (message.isDm) speaker.name else title ?: speaker.name
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_discord_logo)
@@ -128,10 +133,108 @@ class InboxNotifier @Inject constructor(
             .setContentIntent(openDiscordIntent(message))
             .setDeleteIntent(dismissIntent(channelId))
             .addExtras(Bundle().apply { putString(EXTRA_CHANNEL_ID, channelId) })
+            .addAction(replyAction(channelId, message.id, replyTo?.toString()))
+            .apply { message.id?.let { addAction(markReadAction(channelId, it)) } }
             .build()
 
         log.debug(TAG, "Posting notification for a conversation")
         notificationManager.notify(noticeId(channelId), notification)
+    }
+
+    fun replySent(channelId: String, text: String) {
+        ConversationLog.record(
+            channelId,
+            ConversationLog.Line(
+                senderName = "You",
+                senderId = stash.selfId.takeIf { it.isNotBlank() },
+                portraitUrl = null,
+                body = text,
+                at = System.currentTimeMillis(),
+                fromMe = true,
+            ),
+        )
+        val active = activeNotification(channelId) ?: return
+        val style = NotificationCompat.MessagingStyle
+            .extractMessagingStyleFromNotification(active) ?: return
+        style.addMessage(text, System.currentTimeMillis(), null as Person?)
+        notificationManager.notify(
+            noticeId(channelId),
+            NotificationCompat.Builder(context, active).setStyle(style).build(),
+        )
+    }
+
+    fun replyFailed(channelId: String) {
+        val active = activeNotification(channelId) ?: return
+        notificationManager.notify(
+            noticeId(channelId),
+            NotificationCompat.Builder(context, active)
+                .setSubText(context.getString(R.string.inbox_reply_failed))
+                .build(),
+        )
+    }
+
+    fun conversationRead(channelId: String) {
+        ConversationLog.forget(channelId)
+        notificationManager.cancel(noticeId(channelId))
+    }
+
+    private fun activeNotification(channelId: String) = runCatching {
+        notificationManager.activeNotifications
+            .firstOrNull { it.id == noticeId(channelId) }
+            ?.notification
+    }.getOrNull()
+
+    private fun replyAction(
+        channelId: String,
+        messageId: String?,
+        replyTo: String?,
+    ): NotificationCompat.Action {
+        val label = context.getString(R.string.inbox_reply)
+        val remoteInput = RemoteInput.Builder(InboxReplyReceiver.KEY_REPLY)
+            .setLabel(replyTo?.let { context.getString(R.string.inbox_reply_to, it) } ?: label)
+            .build()
+        val intent = Intent(context, InboxReplyReceiver::class.java)
+            .setAction(InboxReplyReceiver.ACTION_REPLY)
+            .putExtra(InboxReplyReceiver.EXTRA_CHANNEL_ID, channelId)
+            .putExtra(InboxReplyReceiver.EXTRA_MESSAGE_ID, messageId)
+        val mutable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PendingIntent.FLAG_MUTABLE
+        } else {
+            0
+        }
+        val pending = PendingIntent.getBroadcast(
+            context,
+            channelId.hashCode() * 31 + 1,
+            intent,
+            mutable or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        return NotificationCompat.Action.Builder(R.drawable.ic_discord_logo, label, pending)
+            .addRemoteInput(remoteInput)
+            .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
+            .setAllowGeneratedReplies(true)
+            .setShowsUserInterface(false)
+            .build()
+    }
+
+    private fun markReadAction(channelId: String, messageId: String): NotificationCompat.Action {
+        val intent = Intent(context, InboxReplyReceiver::class.java)
+            .setAction(InboxReplyReceiver.ACTION_MARK_READ)
+            .putExtra(InboxReplyReceiver.EXTRA_CHANNEL_ID, channelId)
+            .putExtra(InboxReplyReceiver.EXTRA_MESSAGE_ID, messageId)
+        val pending = PendingIntent.getBroadcast(
+            context,
+            channelId.hashCode() * 31 + 2,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+        )
+        return NotificationCompat.Action.Builder(
+            R.drawable.ic_discord_logo,
+            context.getString(R.string.inbox_mark_read),
+            pending,
+        )
+            .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_MARK_AS_READ)
+            .setShowsUserInterface(false)
+            .build()
     }
 
     private fun personOf(line: ConversationLog.Line, portrait: IconCompat?): Person =

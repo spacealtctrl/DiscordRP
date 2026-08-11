@@ -7,6 +7,7 @@ internal object ConversationLog {
         val portraitUrl: String?,
         val body: String,
         val at: Long,
+        val fromMe: Boolean = false,
     )
 
     private const val LINES_PER_CONVERSATION = 8

@@ -11,13 +11,16 @@ class DiscordRpApp : Application() {
     override fun onCreate() {
         super.onCreate()
         CrashGuard.install(this)
-        Stash.of(this).purgeStaleArtCaches()
+        Stash.of(this).apply {
+            dropVideoPlayers()
+            purgeStaleArtCaches()
+        }
         dropRetiredNotificationChannels()
     }
 
     private fun dropRetiredNotificationChannels() {
         val manager = getSystemService(NotificationManager::class.java) ?: return
-        listOf("discordrp.notification", "discordrp.messages").forEach {
+        listOf("discordrp.notification", "discordrp.messages", "bridge.status").forEach {
             runCatching { manager.deleteNotificationChannel(it) }
         }
     }
