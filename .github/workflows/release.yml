@@ -31,7 +31,7 @@ jobs:
         run: |
           : "${REPO_SYNC_PAT:?REPO_SYNC_PAT secret is not set; it is needed to push the version bump past the branch ruleset}"
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           token: ${{ secrets.REPO_SYNC_PAT }}
