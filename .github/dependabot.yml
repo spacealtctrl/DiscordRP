@@ -11,6 +11,7 @@ updates:
     ignore:
       - dependency-name: "com.google.dagger*"
       - dependency-name: "androidx.hilt:*"
+      - dependency-name: "androidx.core:*"
     groups:
       gradle:
         patterns:
