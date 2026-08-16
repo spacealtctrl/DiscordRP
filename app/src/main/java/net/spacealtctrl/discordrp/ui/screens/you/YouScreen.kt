@@ -51,7 +51,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import net.spacealtctrl.discordrp.R
 import androidx.compose.material.icons.rounded.SystemUpdate
 import net.spacealtctrl.discordrp.BuildConfig
@@ -81,15 +81,16 @@ fun YouScreen(
     var awaitingCheck by remember { mutableStateOf(false) }
     var checkResult by remember { mutableStateOf<String?>(null) }
 
+    val upToDateMessage = stringResource(R.string.update_dialog_current)
+    val failedMessage = stringResource(R.string.update_dialog_failed)
+
     LaunchedEffect(Unit) {
         viewModel.updateOutcomes.collect { outcome ->
             if (!awaitingCheck) return@collect
             awaitingCheck = false
             when (outcome) {
-                is UpdateState.UpToDate ->
-                    checkResult = context.getString(R.string.update_dialog_current)
-                is UpdateState.Failed ->
-                    checkResult = context.getString(R.string.update_dialog_failed)
+                is UpdateState.UpToDate -> checkResult = upToDateMessage
+                is UpdateState.Failed -> checkResult = failedMessage
                 is UpdateState.Available -> {
                     awaitingCheck = true
                     viewModel.installUpdate(outcome.update)

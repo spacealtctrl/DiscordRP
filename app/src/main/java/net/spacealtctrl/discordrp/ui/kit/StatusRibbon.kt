@@ -162,11 +162,11 @@ private fun DrawScope.severedWire(
 
     val left = Path().apply {
         moveTo(0f, midY)
-        quadraticBezierTo(size.width * 0.30f, midY + dipLeft, leftTip.x, leftTip.y)
+        quadraticTo(size.width * 0.30f, midY + dipLeft, leftTip.x, leftTip.y)
     }
     val right = Path().apply {
         moveTo(size.width, midY)
-        quadraticBezierTo(size.width * 0.70f, midY - dipRight, rightTip.x, rightTip.y)
+        quadraticTo(size.width * 0.70f, midY - dipRight, rightTip.x, rightTip.y)
     }
     drawPath(left, color, alpha = alpha, style = stroke)
     drawPath(right, color, alpha = alpha, style = stroke)

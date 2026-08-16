@@ -1,8 +1,9 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
@@ -18,7 +19,7 @@ fun secret(key: String): String? =
 
 android {
     namespace = "net.spacealtctrl.discordrp"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "net.spacealtctrl.discordrp"
@@ -64,16 +65,10 @@ android {
         compose = true
         buildConfig = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
-    }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     packaging.resources.excludes.add("/META-INF/{AL2.0,LGPL2.1}")
@@ -85,6 +80,12 @@ android {
     dependenciesInfo {
         includeInApk = false
         includeInBundle = true
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
     }
 }
 
