@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload artifact
         if: steps.version.outputs.release == 'true'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: discordrp-release
           path: ${{ steps.name.outputs.apk }}
