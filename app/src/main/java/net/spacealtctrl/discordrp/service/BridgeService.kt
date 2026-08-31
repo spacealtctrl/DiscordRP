@@ -37,6 +37,7 @@ import net.spacealtctrl.discordrp.R
 import net.spacealtctrl.discordrp.gateway.Gateway
 import net.spacealtctrl.discordrp.gateway.GatewayEngine
 import net.spacealtctrl.discordrp.gateway.GatewayEvent
+import net.spacealtctrl.discordrp.gateway.PresenceUpdate
 import net.spacealtctrl.discordrp.inbox.InboxNotifier
 import net.spacealtctrl.discordrp.log.AndroidAppLog
 import net.spacealtctrl.discordrp.log.AppLog
@@ -45,6 +46,7 @@ import net.spacealtctrl.discordrp.presence.BridgeFeed
 import net.spacealtctrl.discordrp.presence.NowPlaying
 import net.spacealtctrl.discordrp.presence.PlaybackScanner
 import net.spacealtctrl.discordrp.presence.PresenceComposer
+import net.spacealtctrl.discordrp.presence.PresenceEcho
 import net.spacealtctrl.discordrp.settings.Stash
 import javax.inject.Inject
 
@@ -68,6 +70,8 @@ class BridgeService : Service() {
 
     @Volatile private var lastUpAt = 0L
     @Volatile private var lastNetwork: Network? = null
+    @Volatile private var lastPublished: PresenceUpdate? = null
+    @Volatile private var lastNoticeKey: String? = null
 
     private lateinit var sessionManager: MediaSessionManager
     private var watchedController: MediaController? = null
@@ -87,7 +91,7 @@ class BridgeService : Service() {
         _alive.value = true
         lastUpAt = System.currentTimeMillis()
         stash.purgeStaleArtCaches()
-        holdWakeLock()
+        applyPowerMode()
         openGateway()
         watchMediaSessions()
         watchNetwork()
@@ -157,6 +161,7 @@ class BridgeService : Service() {
         }
         scope.launch {
             engine.linked.collect { up ->
+                lastPublished = null
                 if (up) lastUpAt = System.currentTimeMillis()
                 BridgeFeed.linkChanged(up)
                 if (up) scheduleRefresh(delayMs = 0)
@@ -231,7 +236,7 @@ class BridgeService : Service() {
     }
 
     private fun checkup() {
-        holdWakeLock()
+        applyPowerMode()
         scheduleWatchdogAlarm()
         val engine = gateway ?: return
         if (engine.linked.value) return
@@ -252,7 +257,7 @@ class BridgeService : Service() {
     private fun scheduleWatchdogAlarm() {
         getSystemService(AlarmManager::class.java)?.setAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
-            System.currentTimeMillis() + WATCHDOG_INTERVAL_MS,
+            System.currentTimeMillis() + stash.powerMode.watchdogIntervalMs,
             watchdogIntent(),
         )
     }
@@ -276,10 +281,10 @@ class BridgeService : Service() {
 
     private val controllerWatcher = object : MediaController.Callback() {
         override fun onPlaybackStateChanged(state: PlaybackState?) =
-            scheduleRefresh(delayMs = PLAYBACK_SETTLE_MS)
+            scheduleRefresh(delayMs = stash.powerMode.playbackSettleMs)
 
         override fun onMetadataChanged(metadata: MediaMetadata?) =
-            scheduleRefresh(delayMs = PLAYBACK_SETTLE_MS)
+            scheduleRefresh(delayMs = stash.powerMode.playbackSettleMs)
 
         override fun onSessionDestroyed() = scheduleRefresh(delayMs = 0)
     }
@@ -292,19 +297,35 @@ class BridgeService : Service() {
         }
     }
 
-    private suspend fun refresh() {
+    private suspend fun refresh() = keepingAwake {
         val track = scanner.currentTrack()
-        notificationManager().notify(STATUS_NOTICE_ID, statusNotification(track))
+        postStatusNotice(track)
 
         if (!stash.presenceEnabled || track == null) {
             if (track == null) log.debug(TAG, "Nothing playing; clearing the activity")
             BridgeFeed.trackChanged(null)
-            gateway?.publish(composer.quietUpdate())
-            return
+            publish(composer.quietUpdate())
+            return@keepingAwake
         }
 
         BridgeFeed.trackChanged(track)
-        gateway?.publish(composer.listeningUpdate(track))
+        publish(composer.listeningUpdate(track))
+    }
+
+    private fun postStatusNotice(track: NowPlaying?) {
+        val key = track?.let { "${it.title}|${it.artist}|${it.appPackage}" }.orEmpty()
+        if (key == lastNoticeKey) return
+        lastNoticeKey = key
+        notificationManager().notify(STATUS_NOTICE_ID, statusNotification(track))
+    }
+
+    private suspend fun publish(update: PresenceUpdate) {
+        if (PresenceEcho.isEcho(lastPublished, update)) {
+            log.debug(TAG, "Presence unchanged; skipping the update")
+            return
+        }
+        lastPublished = update
+        gateway?.publish(update)
     }
 
     private fun statusNotification(track: NowPlaying?): Notification {
@@ -375,13 +396,25 @@ class BridgeService : Service() {
     private fun notificationManager(): NotificationManager =
         getSystemService(NotificationManager::class.java)
 
-    private fun holdWakeLock() {
-        if (wakeLock == null) {
-            val power = getSystemService(POWER_SERVICE) as PowerManager
-            wakeLock = power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
-                .apply { setReferenceCounted(false) }
+    private fun applyPowerMode() {
+        if (stash.powerMode.holdsCpuAwake) wakeLock().acquire(WAKELOCK_LEASE_MS) else dropWakeLock()
+    }
+
+    private suspend fun keepingAwake(block: suspend () -> Unit) {
+        val lock = wakeLock()
+        if (!lock.isHeld) lock.acquire(WORK_LEASE_MS)
+        try {
+            block()
+        } finally {
+            if (!stash.powerMode.holdsCpuAwake) dropWakeLock()
         }
-        wakeLock?.acquire(WAKELOCK_LEASE_MS)
+    }
+
+    private fun wakeLock(): PowerManager.WakeLock = wakeLock ?: run {
+        val power = getSystemService(POWER_SERVICE) as PowerManager
+        power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
+            .apply { setReferenceCounted(false) }
+            .also { wakeLock = it }
     }
 
     private fun dropWakeLock() {
@@ -401,11 +434,10 @@ class BridgeService : Service() {
 
         private const val WAKELOCK_TAG = "discordrp:bridge"
         private const val WAKELOCK_LEASE_MS = 50 * 60 * 1000L
+        private const val WORK_LEASE_MS = 30 * 1000L
         private const val SESSIONS_SETTLE_MS = 1_500L
-        private const val PLAYBACK_SETTLE_MS = 1_000L
 
         private const val CHECKUP_INTERVAL_MS = 15 * 60 * 1000L
-        private const val WATCHDOG_INTERVAL_MS = 15 * 60 * 1000L
         private const val STUCK_GATEWAY_MS = 2 * 60 * 1000L
         private const val NETWORK_SETTLE_MS = 3_000L
         private const val NETWORK_REDIAL_GRACE_MS = 10_000L
@@ -416,5 +448,8 @@ class BridgeService : Service() {
 
         fun refreshIntent(context: Context): Intent =
             Intent(context, BridgeService::class.java).setAction(ACTION_REFRESH)
+
+        fun checkupIntent(context: Context): Intent =
+            Intent(context, BridgeService::class.java).setAction(ACTION_CHECKUP)
     }
 }

@@ -41,12 +41,28 @@ class ArtRegistry @Inject constructor(
 
     private suspend fun resolveCover(cover: ArtSource.Cover): String? {
         stash.coverAssets[cover.cacheKey]?.let { return it }
-        val url = coverLookup.coverUrl(cover.artist, cover.album) ?: return null
-        return register(url, cover.cacheKey)
+        if (!stash.powerMode.fetchesRemoteArt) return null
+        if (missIsFresh(cover.cacheKey)) {
+            log.debug(TAG, "Cover for ${cover.cacheKey} missed recently; not asking again")
+            return null
+        }
+        val url = coverLookup.coverUrl(cover.artist, cover.album) ?: return rememberMiss(cover.cacheKey)
+        return register(url, cover.cacheKey) ?: rememberMiss(cover.cacheKey)
+    }
+
+    private fun missIsFresh(cacheKey: String, now: Long = System.currentTimeMillis()): Boolean {
+        val missedAt = stash.coverMisses[cacheKey] ?: return false
+        return now - missedAt in 0 until MISS_RETRY_MS
+    }
+
+    private fun rememberMiss(cacheKey: String): String? {
+        stash.coverMisses = stash.coverMisses + (cacheKey to System.currentTimeMillis())
+        return null
     }
 
     private suspend fun resolveAppIcon(icon: ArtSource.AppIcon): String? {
         stash.appIconAssets[icon.packageName]?.let { return it.takeIf(String::isNotBlank) }
+        if (!stash.powerMode.fetchesRemoteArt) return null
         val result = api.hostedAssetFor("$ICON_BASE/${icon.packageName}.png")
         val reference = result.getOrNull()
         when {
@@ -62,6 +78,7 @@ class ArtRegistry @Inject constructor(
 
     private suspend fun register(url: String, cacheKey: String): String? {
         stash.coverAssets[cacheKey]?.let { return it }
+        if (!stash.powerMode.fetchesRemoteArt) return null
         val reference = api.hostedAssetFor(url)
             .onFailure { log.warn(TAG, "Discord refused $url: ${it.message}") }
             .getOrNull() ?: return null
@@ -91,5 +108,7 @@ class ArtRegistry @Inject constructor(
 
         const val ICON_BASE =
             "https://raw.githubusercontent.com/spacealtctrl/DiscordRP/main/assets/icons"
+
+        const val MISS_RETRY_MS = 6 * 60 * 60 * 1000L
     }
 }

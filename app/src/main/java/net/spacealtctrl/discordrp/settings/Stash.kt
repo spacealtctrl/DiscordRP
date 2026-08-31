@@ -60,6 +60,10 @@ class Stash private constructor(context: Context) {
         get() = prefs.getBoolean(KEY_MOBILE_BADGE, true)
         set(value) = write { putBoolean(KEY_MOBILE_BADGE, value) }
 
+    var powerMode: PowerMode
+        get() = PowerMode.fromStored(prefs.getString(KEY_POWER_MODE, null))
+        set(value) = write { putString(KEY_POWER_MODE, value.stored) }
+
     var showArtist: Boolean
         get() = prefs.getBoolean(KEY_SHOW_ARTIST, false)
         set(value) = write { putBoolean(KEY_SHOW_ARTIST, value) }
@@ -137,6 +141,14 @@ class Stash private constructor(context: Context) {
         get() = readMap(KEY_COVER_ASSETS)
         set(value) = write { putString(KEY_COVER_ASSETS, json.encodeToString(value)) }
 
+    var coverMisses: Map<String, Long>
+        get() {
+            val raw = prefs.getString(KEY_COVER_MISSES, null) ?: return emptyMap()
+            return runCatching { json.decodeFromString<Map<String, Long>>(raw) }
+                .getOrDefault(emptyMap())
+        }
+        set(value) = write { putString(KEY_COVER_MISSES, json.encodeToString(value)) }
+
     fun dropVideoPlayers() {
         if (prefs.getBoolean(KEY_VIDEO_DROPPED, false)) return
         val stored = prefs.getStringSet(KEY_PLAYERS, null)
@@ -156,6 +168,7 @@ class Stash private constructor(context: Context) {
             write {
                 remove(KEY_ICON_ASSETS)
                 remove(KEY_COVER_ASSETS)
+                remove(KEY_COVER_MISSES)
                 putLong(KEY_ART_PURGED_AT, now)
             }
         }
@@ -185,6 +198,7 @@ class Stash private constructor(context: Context) {
         private const val KEY_PRESENCE_ON = "presence.enabled"
         private const val KEY_MOOD = "presence.mood"
         private const val KEY_MOBILE_BADGE = "presence.mobile_badge"
+        private const val KEY_POWER_MODE = "presence.power_mode"
         private const val KEY_SHOW_ARTIST = "presence.show_artist"
         private const val KEY_SHOW_ALBUM = "presence.show_album"
         private const val KEY_SHOW_GLYPH = "presence.show_playback_glyph"
@@ -206,6 +220,7 @@ class Stash private constructor(context: Context) {
 
         private const val KEY_ICON_ASSETS = "art.icon_assets"
         private const val KEY_COVER_ASSETS = "art.cover_assets"
+        private const val KEY_COVER_MISSES = "art.cover_misses"
         private const val KEY_ART_PURGED_AT = "art.purged_at"
 
         private val DAY_MS = 24.hours.inWholeMilliseconds

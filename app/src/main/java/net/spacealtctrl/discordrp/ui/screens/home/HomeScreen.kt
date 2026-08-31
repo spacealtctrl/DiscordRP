@@ -27,6 +27,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.BatteryFull
+import androidx.compose.material.icons.rounded.BatterySaver
+import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.PowerSettingsNew
 import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.Warning
@@ -47,20 +50,25 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import net.spacealtctrl.discordrp.R
 import net.spacealtctrl.discordrp.presence.NowPlaying
+import net.spacealtctrl.discordrp.settings.PowerMode
 import net.spacealtctrl.discordrp.ui.kit.AppScreen
 import net.spacealtctrl.discordrp.ui.kit.AvatarBadge
 import net.spacealtctrl.discordrp.ui.kit.CalloutBanner
 import net.spacealtctrl.discordrp.ui.kit.CalloutTone
+import net.spacealtctrl.discordrp.ui.kit.Cluster
 import net.spacealtctrl.discordrp.ui.kit.EqualizerBars
 import net.spacealtctrl.discordrp.ui.kit.GlowCard
 import net.spacealtctrl.discordrp.ui.kit.StatusRibbon
 import net.spacealtctrl.discordrp.ui.kit.HeroArt
 import net.spacealtctrl.discordrp.ui.kit.MoodSheet
 import net.spacealtctrl.discordrp.ui.kit.PageTitle
+import net.spacealtctrl.discordrp.ui.kit.PickRow
+import net.spacealtctrl.discordrp.ui.kit.RowRule
 import net.spacealtctrl.discordrp.ui.kit.SectionHeader
 import net.spacealtctrl.discordrp.ui.kit.ThumbSwitch
 import net.spacealtctrl.discordrp.ui.kit.TrackTimeline
@@ -159,6 +167,24 @@ fun HomeScreen(
                     )
                 }
             }
+
+            item(key = "power") {
+                Column(settleIntoPlace()) {
+                    SectionHeader(stringResource(R.string.home_power_header))
+                    Cluster {
+                        PowerMode.entries.reversed().forEachIndexed { index, mode ->
+                            PickRow(
+                                title = stringResource(mode.labelRes()),
+                                subtitle = stringResource(mode.blurbRes()),
+                                icon = mode.icon(),
+                                selected = state.powerMode == mode,
+                                onPick = { viewModel.setPowerMode(mode) },
+                            )
+                            if (index != PowerMode.entries.lastIndex) RowRule(inset = false)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -172,6 +198,24 @@ fun HomeScreen(
             onDismiss = { moodSheetOpen = false },
         )
     }
+}
+
+private fun PowerMode.labelRes(): Int = when (this) {
+    PowerMode.ALWAYS_ON -> R.string.power_always_on
+    PowerMode.BALANCED -> R.string.power_balanced
+    PowerMode.SAVER -> R.string.power_saver
+}
+
+private fun PowerMode.blurbRes(): Int = when (this) {
+    PowerMode.ALWAYS_ON -> R.string.power_always_on_blurb
+    PowerMode.BALANCED -> R.string.power_balanced_blurb
+    PowerMode.SAVER -> R.string.power_saver_blurb
+}
+
+private fun PowerMode.icon(): ImageVector = when (this) {
+    PowerMode.ALWAYS_ON -> Icons.Rounded.Bolt
+    PowerMode.BALANCED -> Icons.Rounded.BatteryFull
+    PowerMode.SAVER -> Icons.Rounded.BatterySaver
 }
 
 private fun LazyItemScope.settleIntoPlace(): Modifier = Modifier.animateItem(

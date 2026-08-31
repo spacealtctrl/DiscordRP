@@ -15,6 +15,7 @@ import net.spacealtctrl.discordrp.discord.ProfileRepository
 import net.spacealtctrl.discordrp.presence.BridgeSnapshot
 import net.spacealtctrl.discordrp.service.BridgeService
 import net.spacealtctrl.discordrp.settings.Mood
+import net.spacealtctrl.discordrp.settings.PowerMode
 import net.spacealtctrl.discordrp.settings.Stash
 import net.spacealtctrl.discordrp.update.UpdateHub
 import net.spacealtctrl.discordrp.update.UpdateState
@@ -31,6 +32,7 @@ data class HomeUiState(
     val presenceEnabled: Boolean = true,
     val signedIn: Boolean = false,
     val startOnBoot: Boolean = false,
+    val powerMode: PowerMode = PowerMode.ALWAYS_ON,
     val displayName: String? = null,
     val avatarUrl: String? = null,
     val updateVersion: String? = null,
@@ -61,6 +63,7 @@ class HomeViewModel @Inject constructor(
             presenceEnabled = stash.presenceEnabled,
             signedIn = stash.signedIn,
             startOnBoot = stash.startOnBoot,
+            powerMode = stash.powerMode,
             displayName = profile?.displayName(),
             avatarUrl = profile?.avatarUrl(160),
             updateVersion = (updateState as? UpdateState.Available)?.update?.version,
@@ -83,6 +86,13 @@ class HomeViewModel @Inject constructor(
 
     fun setStartOnBoot(on: Boolean) {
         stash.startOnBoot = on
+    }
+
+    fun setPowerMode(mode: PowerMode) {
+        stash.powerMode = mode
+        if (BridgeService.alive.value) {
+            appContext.startService(BridgeService.checkupIntent(appContext))
+        }
     }
 
     fun installUpdate() {

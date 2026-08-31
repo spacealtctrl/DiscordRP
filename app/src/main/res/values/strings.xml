@@ -13,6 +13,13 @@
     <string name="home_general_header">General</string>
     <string name="home_autostart_title">Start on boot</string>
     <string name="home_autostart_blurb">Reconnect when the phone restarts.</string>
+    <string name="home_power_header">Battery</string>
+    <string name="power_always_on">Always connected</string>
+    <string name="power_always_on_blurb">Instant messages day or night. Keeps the processor awake.</string>
+    <string name="power_balanced">Balanced</string>
+    <string name="power_balanced_blurb">Lets the phone sleep. Messages may wait until you wake it.</string>
+    <string name="power_saver">Battery saver</string>
+    <string name="power_saver_blurb">As Balanced, and skips album art lookups. Cached art still shows.</string>
     <string name="access_banner_title">Notification access needed</string>
     <string name="access_banner_body">The app needs this to see what your music apps are playing.</string>
     <string name="access_banner_action">Grant access</string>
