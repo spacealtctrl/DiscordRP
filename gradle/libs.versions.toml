@@ -1,8 +1,8 @@
 [versions]
 agp = "9.4.0"
 kotlin = "2.4.20"
-app-version-name = "1.4.1"
-app-version-code = "1004001"
+app-version-name = "1.4.2"
+app-version-code = "1004002"
 
 activity-compose = "1.13.0"
 appcompat = "1.8.0"
