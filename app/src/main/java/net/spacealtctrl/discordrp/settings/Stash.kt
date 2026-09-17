@@ -109,6 +109,19 @@ class Stash private constructor(context: Context) {
         }
     }
 
+    var mutedGuilds: Set<String>
+        get() = prefs.getStringSet(KEY_MUTED_GUILDS, null) ?: emptySet()
+        set(value) = write { putStringSet(KEY_MUTED_GUILDS, value) }
+
+    fun isGuildMuted(guildId: String?): Boolean =
+        guildId != null && guildId in mutedGuilds
+
+    fun toggleMutedGuild(guildId: String) {
+        mutedGuilds = mutedGuilds.let {
+            if (guildId in it) it - guildId else it + guildId
+        }
+    }
+
     var alertsEnabled: Boolean
         get() = prefs.getBoolean(KEY_ALERTS_ON, true)
         set(value) = write { putBoolean(KEY_ALERTS_ON, value) }
@@ -159,6 +172,9 @@ class Stash private constructor(context: Context) {
     }
 
     fun purgeStaleArtCaches(now: Long = System.currentTimeMillis()) {
+        if (LEGACY_ART_KEYS.any(prefs::contains)) {
+            write { LEGACY_ART_KEYS.forEach(::remove) }
+        }
         val last = prefs.getLong(KEY_ART_PURGED_AT, 0L)
         if (last == 0L) {
             write { putLong(KEY_ART_PURGED_AT, now) }
@@ -211,6 +227,7 @@ class Stash private constructor(context: Context) {
         private const val KEY_VIDEO_DROPPED = "presence.video_players_dropped"
 
         private const val KEY_ALERTS_ON = "alerts.enabled"
+        private const val KEY_MUTED_GUILDS = "alerts.muted_guilds"
         private const val KEY_ALERT_SCOPE = "alerts.scope"
         private const val KEY_SKIP_BOTS = "alerts.skip_bots"
         private const val KEY_CLEAR_READ_ELSEWHERE = "alerts.clear_read_elsewhere"
@@ -219,8 +236,9 @@ class Stash private constructor(context: Context) {
         private const val KEY_SETUP_DONE = "app.setup_complete"
 
         private const val KEY_ICON_ASSETS = "art.icon_assets"
-        private const val KEY_COVER_ASSETS = "art.cover_assets"
-        private const val KEY_COVER_MISSES = "art.cover_misses"
+        private const val KEY_COVER_ASSETS = "art.cover_assets.v2"
+        private const val KEY_COVER_MISSES = "art.cover_misses.v2"
+        private val LEGACY_ART_KEYS = listOf("art.cover_assets", "art.cover_misses")
         private const val KEY_ART_PURGED_AT = "art.purged_at"
 
         private val DAY_MS = 24.hours.inWholeMilliseconds

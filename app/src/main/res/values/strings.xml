@@ -75,6 +75,15 @@
     <string name="scope_mentions_blurb">Pings, replies and direct messages.</string>
     <string name="scope_dms">DMs only</string>
     <string name="scope_dms_blurb">Direct messages only.</string>
+    <string name="alerts_muted_button">Muted servers</string>
+    <string name="alerts_muted_count">%1$d muted</string>
+    <string name="alerts_muted_none">None muted</string>
+    <string name="alerts_muted_title">Muted servers</string>
+    <string name="alerts_muted_blurb">Messages from ticked servers will not alert you.</string>
+    <string name="alerts_muted_search">Search servers</string>
+    <string name="alerts_muted_empty">No servers found.</string>
+    <string name="alerts_muted_loading">Loading your servers…</string>
+    <string name="alerts_muted_failed">Could not load your servers.</string>
     <string name="alerts_filters_header">Filters</string>
     <string name="alerts_skip_bots">Ignore bots</string>
     <string name="alerts_clear_read">Clear when read elsewhere</string>

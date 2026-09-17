@@ -12,6 +12,7 @@ import androidx.compose.material.icons.rounded.AlternateEmail
 import androidx.compose.material.icons.rounded.DoneAll
 import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.NotificationsOff
 import androidx.compose.material.icons.rounded.SmartToy
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.MaterialTheme
@@ -19,17 +20,25 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import net.spacealtctrl.discordrp.R
+import net.spacealtctrl.discordrp.discord.DiscordApi
+import net.spacealtctrl.discordrp.discord.GuildSummary
 import net.spacealtctrl.discordrp.settings.AlertScope
 import net.spacealtctrl.discordrp.settings.Stash
 import net.spacealtctrl.discordrp.ui.kit.AppScreen
@@ -38,6 +47,7 @@ import net.spacealtctrl.discordrp.ui.kit.PageTitle
 import net.spacealtctrl.discordrp.ui.kit.PickRow
 import net.spacealtctrl.discordrp.ui.kit.RowRule
 import net.spacealtctrl.discordrp.ui.kit.SectionHeader
+import net.spacealtctrl.discordrp.ui.kit.TapRow
 import net.spacealtctrl.discordrp.ui.kit.ToggleRow
 import net.spacealtctrl.discordrp.ui.theme.Look
 import net.spacealtctrl.discordrp.ui.theme.Pace
@@ -48,12 +58,24 @@ data class AlertsUiState(
     val scope: AlertScope = AlertScope.EVERYTHING,
     val skipBots: Boolean = false,
     val clearReadElsewhere: Boolean = false,
+    val mutedGuilds: Set<String> = emptySet(),
 )
+
+sealed interface ServerListState {
+    data object Loading : ServerListState
+
+    data object Failed : ServerListState
+
+    data class Ready(val guilds: List<GuildSummary>) : ServerListState
+}
 
 @HiltViewModel
 class AlertsViewModel @Inject constructor(
     private val stash: Stash,
+    private val api: DiscordApi,
 ) : ViewModel() {
+    private val _servers = MutableStateFlow<ServerListState>(ServerListState.Loading)
+    val servers: StateFlow<ServerListState> = _servers.asStateFlow()
     val state: StateFlow<AlertsUiState> = stash.revisions
         .map {
             AlertsUiState(
@@ -61,6 +83,7 @@ class AlertsViewModel @Inject constructor(
                 scope = stash.alertScope,
                 skipBots = stash.skipBots,
                 clearReadElsewhere = stash.clearReadElsewhere,
+                mutedGuilds = stash.mutedGuilds,
             )
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), AlertsUiState())
@@ -80,11 +103,33 @@ class AlertsViewModel @Inject constructor(
     fun setClearReadElsewhere(on: Boolean) {
         stash.clearReadElsewhere = on
     }
+
+    fun loadServers() {
+        if (_servers.value is ServerListState.Ready) return
+        _servers.value = ServerListState.Loading
+        viewModelScope.launch {
+            _servers.value = api.myGuilds().fold(
+                onSuccess = { guilds ->
+                    ServerListState.Ready(
+                        guilds.filter { it.id != null }
+                            .sortedBy { it.name.orEmpty().lowercase() },
+                    )
+                },
+                onFailure = { ServerListState.Failed },
+            )
+        }
+    }
+
+    fun toggleMutedGuild(guildId: String) {
+        stash.toggleMutedGuild(guildId)
+    }
 }
 
 @Composable
 fun AlertsScreen(viewModel: AlertsViewModel = hiltViewModel()) {
     val state by viewModel.state.collectAsState()
+    val servers by viewModel.servers.collectAsState()
+    var pickingServers by remember { mutableStateOf(false) }
 
     AppScreen {
         LazyColumn(
@@ -130,6 +175,35 @@ fun AlertsScreen(viewModel: AlertsViewModel = hiltViewModel()) {
                                     selected = state.scope == scope,
                                     onPick = { viewModel.setScope(scope) },
                                 )
+                                if (scope != AlertScope.DMS_ONLY) {
+                                    AnimatedVisibility(
+                                        visible = state.scope == scope,
+                                        enter = Pace.reveal,
+                                        exit = Pace.conceal,
+                                    ) {
+                                        Column {
+                                            RowRule()
+                                            TapRow(
+                                                title = stringResource(
+                                                    R.string.alerts_muted_button,
+                                                ),
+                                                subtitle = if (state.mutedGuilds.isEmpty()) {
+                                                    stringResource(R.string.alerts_muted_none)
+                                                } else {
+                                                    stringResource(
+                                                        R.string.alerts_muted_count,
+                                                        state.mutedGuilds.size,
+                                                    )
+                                                },
+                                                icon = Icons.Rounded.NotificationsOff,
+                                                onClick = {
+                                                    viewModel.loadServers()
+                                                    pickingServers = true
+                                                },
+                                            )
+                                        }
+                                    }
+                                }
                                 if (index != AlertScope.entries.lastIndex) RowRule(inset = false)
                             }
                         }
@@ -157,6 +231,15 @@ fun AlertsScreen(viewModel: AlertsViewModel = hiltViewModel()) {
                 }
             }
         }
+    }
+
+    if (pickingServers) {
+        MutedServersSheet(
+            state = servers,
+            muted = state.mutedGuilds,
+            onToggle = viewModel::toggleMutedGuild,
+            onDismiss = { pickingServers = false },
+        )
     }
 }
 

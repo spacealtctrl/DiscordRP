@@ -72,6 +72,10 @@ class DiscordApi @Inject constructor(
         http.get { url("$base/guilds/$guildId"); sign() }.expect()
     }
 
+    suspend fun myGuilds(): Result<List<GuildSummary>> = call {
+        http.get { url("$base/users/@me/guilds"); sign() }.expect()
+    }
+
     suspend fun myMembership(guildId: String): Result<GuildMembership> = call {
         http.get { url("$base/users/@me/guilds/$guildId/member"); sign() }.expect()
     }

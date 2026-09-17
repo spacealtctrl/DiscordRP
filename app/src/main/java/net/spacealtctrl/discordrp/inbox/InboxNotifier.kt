@@ -66,9 +66,10 @@ class InboxNotifier @Inject constructor(
     private suspend fun wanted(message: ChatMessage): Boolean {
         if (stash.skipBots && message.sender?.bot == true) return false
         return when (stash.alertScope) {
-            AlertScope.EVERYTHING -> true
+            AlertScope.EVERYTHING -> !stash.isGuildMuted(message.guildId)
             AlertScope.DMS_ONLY -> message.isDm
-            AlertScope.MENTIONS_AND_DMS -> message.isDm || concernsMe(message)
+            AlertScope.MENTIONS_AND_DMS ->
+                message.isDm || (!stash.isGuildMuted(message.guildId) && concernsMe(message))
         }
     }
 

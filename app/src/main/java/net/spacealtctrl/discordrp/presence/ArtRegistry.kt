@@ -9,6 +9,7 @@ import net.spacealtctrl.discordrp.discord.ApiRefusal
 import net.spacealtctrl.discordrp.discord.DiscordApi
 import net.spacealtctrl.discordrp.log.AppLog
 import net.spacealtctrl.discordrp.settings.Stash
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,6 +33,8 @@ class ArtRegistry @Inject constructor(
     private val stash: Stash,
     private val log: AppLog,
 ) {
+    private val unavailableAt = ConcurrentHashMap<String, Long>()
+
     suspend fun resolve(source: ArtSource?): String? = when (source) {
         null -> null
         is ArtSource.Remote -> register(source.url, source.cacheKey)
@@ -46,8 +49,20 @@ class ArtRegistry @Inject constructor(
             log.debug(TAG, "Cover for ${cover.cacheKey} missed recently; not asking again")
             return null
         }
-        val url = coverLookup.coverUrl(cover.artist, cover.album) ?: return rememberMiss(cover.cacheKey)
-        return register(url, cover.cacheKey) ?: rememberMiss(cover.cacheKey)
+        if (unavailableIsFresh(cover.cacheKey)) return null
+        return when (val result = coverLookup.cover(cover.artist, cover.album)) {
+            is CoverResult.Found -> register(result.url, cover.cacheKey)
+            CoverResult.Missing -> rememberMiss(cover.cacheKey)
+            CoverResult.Unavailable -> {
+                unavailableAt[cover.cacheKey] = System.currentTimeMillis()
+                null
+            }
+        }
+    }
+
+    private fun unavailableIsFresh(cacheKey: String, now: Long = System.currentTimeMillis()): Boolean {
+        val failedAt = unavailableAt[cacheKey] ?: return false
+        return now - failedAt in 0 until UNAVAILABLE_RETRY_MS
     }
 
     private fun missIsFresh(cacheKey: String, now: Long = System.currentTimeMillis()): Boolean {
@@ -110,5 +125,6 @@ class ArtRegistry @Inject constructor(
             "https://raw.githubusercontent.com/spacealtctrl/DiscordRP/main/assets/icons"
 
         const val MISS_RETRY_MS = 6 * 60 * 60 * 1000L
+        const val UNAVAILABLE_RETRY_MS = 2 * 60 * 1000L
     }
 }
