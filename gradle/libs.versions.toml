@@ -1,6 +1,6 @@
 [versions]
 agp = "9.4.1"
-kotlin = "2.4.20"
+kotlin = "2.4.21"
 app-version-name = "1.5.2"
 app-version-code = "1005002"
 
