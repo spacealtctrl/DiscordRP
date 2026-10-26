@@ -134,6 +134,13 @@
     <string name="login_token_note">You sign in on Discord\'s own page. Your login is stored only on this device.</string>
     <string name="login_failed_title">Sign in failed</string>
     <string name="login_failed_body">Discord did not accept the login. Try again.</string>
+    <string name="login_token_manual">Use an existing token</string>
+    <string name="login_token_manual_title">Use an existing token</string>
+    <string name="login_token_manual_help">On a computer signed in to Discord, open DevTools → Application → Local Storage → discord.com and copy the token value here. It stays on this device.</string>
+    <string name="login_token_field_label">Token</string>
+    <string name="login_token_show">Show token</string>
+    <string name="login_token_hide">Hide token</string>
+    <string name="login_token_manual_submit">Sign in</string>
     <string name="common_back">Back</string>
     <string name="common_cancel">Cancel</string>
     <string name="common_ok">OK</string>

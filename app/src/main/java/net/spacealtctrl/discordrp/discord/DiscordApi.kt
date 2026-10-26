@@ -122,6 +122,11 @@ class DiscordApi @Inject constructor(
     }
 
     private fun HttpResponse.raiseForStatus() {
+        if (status.value == 401) {
+            // Unauthorized is permanent for this credential; drop it so the
+            // service cannot redial with a token Discord already rejected.
+            stash.clearToken()
+        }
         if (status.value !in 200..299) throw ApiRefusal(status.value)
     }
 

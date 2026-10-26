@@ -23,6 +23,7 @@ android {
 
     defaultConfig {
         applicationId = "net.spacealtctrl.discordrp"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         minSdk = 26
         targetSdk = 36
         versionCode = (findProperty("versionCodeOverride") as String?)?.toInt()
@@ -110,4 +111,6 @@ dependencies {
     ksp(libs.hilt.compiler)
 
     testImplementation(libs.junit)
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test:runner:1.7.0")
 }
