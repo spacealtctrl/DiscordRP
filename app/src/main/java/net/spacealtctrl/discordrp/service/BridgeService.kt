@@ -17,6 +17,7 @@ import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.Build
+import android.os.Debug
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import net.spacealtctrl.discordrp.BuildConfig
 import net.spacealtctrl.discordrp.R
 import net.spacealtctrl.discordrp.gateway.Gateway
 import net.spacealtctrl.discordrp.gateway.GatewayEngine
@@ -82,8 +84,24 @@ class BridgeService : Service() {
         ensureStatusChannel()
         goForeground(statusNotification(track = null))
 
+        // Every start path goes through startForegroundService, so the
+        // foreground obligation must be met before this early stop.
+        if (BuildConfig.DEBUG && Debug.isDebuggerConnected()) {
+            log.error(TAG, "Debugger attached; refusing to run the bridge")
+            stopSelf()
+            return
+        }
+
         if (!stash.signedIn) {
             log.error(TAG, "No account on file; the bridge cannot start")
+            stopSelf()
+            return
+        }
+        if (stash.authToken.isBlank()) {
+            // The sealed blob is present but cannot be opened (key lost or
+            // invalidated); drop it instead of dialing with an empty token.
+            log.error(TAG, "Stored login is unreadable; clearing it")
+            stash.clearToken()
             stopSelf()
             return
         }
@@ -140,7 +158,7 @@ class BridgeService : Service() {
 
     private fun openGateway() {
         val engine = GatewayEngine(
-            token = stash.authToken,
+            tokenProvider = stash::authToken,
             mobileBadge = stash.mobileBadge,
             fallbackSelfId = stash.selfId.takeIf { it.isNotBlank() },
             log = AndroidAppLog,
@@ -173,7 +191,11 @@ class BridgeService : Service() {
     }
 
     private fun onAuthRejected() {
-        log.error(TAG, "Discord no longer accepts the stored login; stopping")
+        log.error(TAG, "Discord no longer accepts the stored login; clearing it and stopping")
+        // The close code is terminal, so the credential will never work again.
+        // Dropping the sealed blob keeps the app from redialing a dead token and
+        // makes the next launch land on the setup screen.
+        stash.clearToken()
         notificationManager().notify(
             STATUS_NOTICE_ID,
             statusBuilder()

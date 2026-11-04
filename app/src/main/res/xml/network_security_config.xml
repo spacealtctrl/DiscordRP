@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- All traffic the app initiates is HTTPS. Pinning is deliberately not used:
+     an outdated pin set would brick the bridge until an update arrives, which
+     is worse than the certificate-transparency assurance it would add. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

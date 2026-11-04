@@ -55,7 +55,11 @@ object AppProviders {
         }
         install(Logging) {
             level = if (BuildConfig.DEBUG) LogLevel.HEADERS else LogLevel.NONE
-            sanitizeHeader { it == HttpHeaders.Authorization }
+            sanitizeHeader {
+                it == HttpHeaders.Authorization ||
+                    it == HttpHeaders.Cookie ||
+                    it == HttpHeaders.SetCookie
+            }
             logger = object : Logger {
                 override fun log(message: String) = log.debug("Http", message)
             }

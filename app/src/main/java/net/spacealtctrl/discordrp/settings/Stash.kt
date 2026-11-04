@@ -10,9 +10,13 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.time.Duration.Companion.hours
 
-class Stash private constructor(context: Context) {
+class Stash private constructor(
+    context: Context,
+    prefsName: String = PREFS_NAME,
+    private val tokenAlias: String = TokenVault.ALIAS,
+) {
     private val prefs: SharedPreferences =
-        context.applicationContext.getSharedPreferences("stash", Context.MODE_PRIVATE)
+        context.applicationContext.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
 
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -27,8 +31,51 @@ class Stash private constructor(context: Context) {
     }
 
     var authToken: String
-        get() = prefs.getString(KEY_TOKEN, null).orEmpty()
-        set(value) = write { putString(KEY_TOKEN, value) }
+        // Decrypt on demand: the plaintext must not survive in the process
+        // beyond the call that needs it.
+        get() = readToken()
+        set(value) {
+            val token = value.trim()
+            if (token.isEmpty()) {
+                clearToken()
+            } else {
+                val sealed = TokenVault.encrypt(token, tokenAlias)
+                write {
+                    putString(KEY_TOKEN_ENC, sealed)
+                    remove(KEY_TOKEN)
+                }
+            }
+        }
+
+    /**
+     * Drops the stored credential and its Keystore key. Deleting the key first
+     * makes an escaped copy of the sealed blob useless even if the process dies
+     * before the preference write lands.
+     */
+    fun clearToken() {
+        TokenVault.forget(tokenAlias)
+        write {
+            remove(KEY_TOKEN)
+            remove(KEY_TOKEN_ENC)
+        }
+    }
+
+    private fun readToken(): String {
+        prefs.getString(KEY_TOKEN_ENC, null)?.let { sealed ->
+            TokenVault.decrypt(sealed, tokenAlias)?.let { return it }
+        }
+        val legacy = prefs.getString(KEY_TOKEN, null).orEmpty()
+        if (legacy.isBlank()) return ""
+
+        // One-time migration from the pre-Keystore format. If sealing fails the
+        // plaintext copy is still dropped; a token must not stay readable on disk.
+        val sealed = runCatching { TokenVault.encrypt(legacy, tokenAlias) }.getOrNull()
+        write {
+            if (sealed != null) putString(KEY_TOKEN_ENC, sealed)
+            remove(KEY_TOKEN)
+        }
+        return if (sealed != null) legacy else ""
+    }
 
     var selfId: String
         get() = prefs.getString(KEY_SELF_ID, null).orEmpty()
@@ -46,7 +93,11 @@ class Stash private constructor(context: Context) {
         get() = prefs.getString(KEY_PROFILE_CACHE, null).orEmpty()
         set(value) = write { putString(KEY_PROFILE_CACHE, value) }
 
-    val signedIn: Boolean get() = authToken.isNotBlank()
+    // Presence check only: reading the sealed blob is enough to tell the UI
+    // whether a session exists, and avoids decrypting on every recomposition.
+    val signedIn: Boolean
+        get() = prefs.contains(KEY_TOKEN_ENC) ||
+            !prefs.getString(KEY_TOKEN, null).isNullOrBlank()
 
     var presenceEnabled: Boolean
         get() = prefs.getBoolean(KEY_PRESENCE_ON, true)
@@ -205,7 +256,16 @@ class Stash private constructor(context: Context) {
                 shared ?: Stash(context).also { shared = it }
             }
 
+        /**
+         * A store that does not share preferences with the signed-in app. Tests
+         * use it so a run can never clobber the developer's live session.
+         */
+        internal fun isolated(context: Context, prefsName: String): Stash =
+            Stash(context, prefsName, "${TokenVault.ALIAS}.$prefsName")
+
+        private const val PREFS_NAME = "stash"
         private const val KEY_TOKEN = "discord.token"
+        private const val KEY_TOKEN_ENC = "discord.token.enc"
         private const val KEY_SELF_ID = "discord.user.id"
         private const val KEY_SELF_BIO = "discord.user.bio"
         private const val KEY_SELF_NITRO = "discord.user.nitro"

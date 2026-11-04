@@ -13,7 +13,7 @@ class FirstHandshake @Inject constructor(
     private val stash: Stash,
 ) {
     suspend fun run(token: String): Boolean {
-        val probe = GatewayEngine(token = token, mobileBadge = false, autoRedial = false)
+        val probe = GatewayEngine(tokenProvider = { token }, mobileBadge = false, autoRedial = false)
         return try {
             val outcome = coroutineScope {
                 val firstAnswer = async {

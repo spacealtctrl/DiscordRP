@@ -10,6 +10,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,25 +24,38 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -88,9 +105,14 @@ class LoginViewModel @Inject constructor(
 
     fun onToken(token: String) {
         if (_stage.value == LoginStage.Verifying) return
+        if (!TokenShape.isPlausible(token)) {
+            _stage.value = LoginStage.Failed
+            return
+        }
         _stage.value = LoginStage.Verifying
         viewModelScope.launch {
-            _stage.value = if (handshake.run(token)) LoginStage.Done else LoginStage.Failed
+            val accepted = runCatching { handshake.run(token) }.getOrDefault(false)
+            _stage.value = if (accepted) LoginStage.Done else LoginStage.Failed
         }
     }
 }
@@ -103,7 +125,17 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
 ) {
     val stage by viewModel.stage.collectAsState()
+    val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var manualTokenOpen by remember { mutableStateOf(false) }
+    var manualToken by remember { mutableStateOf("") }
+    var manualTokenVisible by remember { mutableStateOf(false) }
+
+    fun closeManualToken() {
+        manualTokenOpen = false
+        manualToken = ""
+        manualTokenVisible = false
+    }
 
     LaunchedEffect(stage) {
         if (stage == LoginStage.Done) onDone()
@@ -231,6 +263,21 @@ fun LoginScreen(
                         )
                     }
                 }
+
+                TextButton(
+                    onClick = {
+                        manualToken = ""
+                        manualTokenVisible = false
+                        manualTokenOpen = true
+                    },
+                    enabled = stage != LoginStage.Verifying,
+                ) {
+                    Text(
+                        text = stringResource(R.string.login_token_manual),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Look.palette.inkFaint,
+                    )
+                }
             }
         }
 
@@ -242,6 +289,99 @@ fun LoginScreen(
             ) {
                 TokenCapture(onToken = viewModel::onToken)
             }
+        }
+
+        if (manualTokenOpen) {
+            val cleanToken = manualToken.trim().removeSurrounding("\"").trim()
+            AlertDialog(
+                onDismissRequest = ::closeManualToken,
+                title = { Text(stringResource(R.string.login_token_manual_title)) },
+                text = {
+                    Column {
+                        Text(
+                            text = stringResource(R.string.login_token_manual_help),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Look.palette.inkFaint,
+                        )
+                        OutlinedTextField(
+                            value = manualToken,
+                            onValueChange = { manualToken = it.trim() },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                autoCorrectEnabled = false,
+                            ),
+                            label = { Text(stringResource(R.string.login_token_field_label)) },
+                            visualTransformation = if (manualTokenVisible) {
+                                VisualTransformation.None
+                            } else {
+                                PasswordVisualTransformation()
+                            },
+                            trailingIcon = {
+                                IconButton(
+                                    onClick = { manualTokenVisible = !manualTokenVisible },
+                                ) {
+                                    Icon(
+                                        imageVector = if (manualTokenVisible) {
+                                            Icons.Rounded.VisibilityOff
+                                        } else {
+                                            Icons.Rounded.Visibility
+                                        },
+                                        contentDescription = stringResource(
+                                            if (manualTokenVisible) {
+                                                R.string.login_token_hide
+                                            } else {
+                                                R.string.login_token_show
+                                            },
+                                        ),
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = Look.gaps.snug),
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        enabled = cleanToken.isNotEmpty() && stage != LoginStage.Verifying,
+                        onClick = {
+                            closeManualToken()
+                            clearClipboardIfMatches(context, cleanToken)
+                            viewModel.onToken(cleanToken)
+                        },
+                    ) {
+                        Text(stringResource(R.string.login_token_manual_submit))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = ::closeManualToken) {
+                        Text(stringResource(R.string.common_cancel))
+                    }
+                },
+            )
+        }
+    }
+}
+
+/**
+ * A pasted token is a credential left behind in the clipboard. Clear it once
+ * the app has its copy, but only when the clipboard still holds exactly what
+ * was pasted.
+ */
+private fun clearClipboardIfMatches(context: Context, token: String) {
+    val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
+    val clip = clipboard.primaryClip ?: return
+    if (clip.itemCount == 0) return
+    val copied = clip.getItemAt(0).text?.toString()
+        ?.trim()?.removeSurrounding("\"")?.trim()
+    if (copied != token) return
+    runCatching {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            clipboard.clearPrimaryClip()
+        } else {
+            clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
         }
     }
 }

@@ -32,7 +32,7 @@ import net.spacealtctrl.discordrp.log.SilentLog
 import kotlin.random.Random
 
 class GatewayEngine(
-    private val token: String,
+    private val tokenProvider: () -> String,
     private val mobileBadge: Boolean,
     private val autoRedial: Boolean = true,
     fallbackSelfId: String? = null,
@@ -231,7 +231,10 @@ class GatewayEngine(
             "READY" -> {
                 val ready = GatewayCodec.read<ReadyData>(frame) ?: return
                 sessionId = ready.sessionId
-                resumeUrl = ready.resumeUrl?.let { "$it/?v=10&encoding=json" }
+                resumeUrl = GatewayEndpoint.resumeUrl(ready.resumeUrl)
+                if (ready.resumeUrl != null && resumeUrl == null) {
+                    log.warn(TAG, "Ignoring a resume endpoint outside Discord's gateway hosts")
+                }
                 ready.user?.id?.let { selfId = it }
                 sessionUp = true
                 _linked.value = true
@@ -260,7 +263,7 @@ class GatewayEngine(
         transmit(
             Op.IDENTIFY,
             GatewayCodec.encode(
-                IdentifyRequest(token = token, properties = ClientStamp.forMobileBadge(mobileBadge))
+                IdentifyRequest(token = tokenProvider(), properties = ClientStamp.forMobileBadge(mobileBadge))
             ),
         )
     }
@@ -270,7 +273,7 @@ class GatewayEngine(
         transmit(
             Op.RESUME,
             GatewayCodec.encode(
-                ResumeRequest(token = token, sessionId = sessionId.orEmpty(), seq = seq)
+                ResumeRequest(token = tokenProvider(), sessionId = sessionId.orEmpty(), seq = seq)
             ),
         )
     }
@@ -324,7 +327,7 @@ class GatewayEngine(
 
     private companion object {
         const val TAG = "Gateway"
-        const val GATEWAY_URL = "wss://gateway.discord.gg/?v=10&encoding=json"
+        const val GATEWAY_URL = GatewayEndpoint.DEFAULT_URL
 
         const val APP_CLOSE_CODE: Short = 4000
 

@@ -14,19 +14,19 @@ object AndroidAppLog : AppLog {
     private const val PREFIX = "DiscordRP/"
 
     override fun debug(tag: String, message: String) {
-        if (BuildConfig.DEBUG) Log.d(PREFIX + tag, message)
+        if (BuildConfig.DEBUG) Log.d(PREFIX + tag, Redactor.redact(message))
     }
 
     override fun info(tag: String, message: String) {
-        if (BuildConfig.DEBUG) Log.i(PREFIX + tag, message)
+        if (BuildConfig.DEBUG) Log.i(PREFIX + tag, Redactor.redact(message))
     }
 
     override fun warn(tag: String, message: String) {
-        Log.w(PREFIX + tag, message)
+        Log.w(PREFIX + tag, Redactor.redact(message))
     }
 
     override fun error(tag: String, message: String) {
-        Log.e(PREFIX + tag, message)
+        Log.e(PREFIX + tag, Redactor.redact(message))
     }
 }
 
