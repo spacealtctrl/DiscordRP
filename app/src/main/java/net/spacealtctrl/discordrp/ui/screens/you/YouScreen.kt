@@ -56,6 +56,8 @@ import net.spacealtctrl.discordrp.R
 import androidx.compose.material.icons.rounded.SystemUpdate
 import net.spacealtctrl.discordrp.BuildConfig
 import net.spacealtctrl.discordrp.discord.ProfileFetch
+import net.spacealtctrl.discordrp.presence.CoverOffer
+import net.spacealtctrl.discordrp.ui.screens.cover.AddCoverLink
 import net.spacealtctrl.discordrp.update.AppUpdate
 import net.spacealtctrl.discordrp.update.UpdateState
 import net.spacealtctrl.discordrp.ui.kit.AccentButton
@@ -72,6 +74,7 @@ private const val REPO_URL = "https://github.com/spacealtctrl/DiscordRP"
 @Composable
 fun YouScreen(
     onSignIn: () -> Unit,
+    onAddCover: () -> Unit,
     viewModel: YouViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -147,7 +150,7 @@ fun YouScreen(
                 label = "signedInSwap",
             ) { signedIn ->
                 if (signedIn) {
-                    ProfileSection(state = state)
+                    ProfileSection(state = state, onAddCover = onAddCover)
                 } else {
                     SignedOutHero(onSignIn = onSignIn)
                 }
@@ -266,7 +269,7 @@ fun YouScreen(
 }
 
 @Composable
-private fun ProfileSection(state: YouUiState) {
+private fun ProfileSection(state: YouUiState, onAddCover: () -> Unit) {
     AnimatedContent(
         targetState = state.fetch,
         transitionSpec = { Pace.fadeThrough() },
@@ -275,25 +278,27 @@ private fun ProfileSection(state: YouUiState) {
     ) { fetch ->
         when (fetch) {
             is ProfileFetch.Loading -> ProfileSkeleton()
-            is ProfileFetch.Fresh -> ProfileCard(
-                profile = fetch.profile,
-                track = state.snapshot.track,
-                mood = state.mood,
-                mobile = state.mobileBadge,
-                showGlyph = state.showPlaybackGlyph,
-                showAppIcon = state.showAppIcon,
-                cardTitle = state.cardTitle,
-            )
+            is ProfileFetch.Fresh -> Column {
+                ProfileCard(
+                    profile = fetch.profile,
+                    track = state.snapshot.track,
+                    mood = state.mood,
+                    mobile = state.mobileBadge,
+                    art = state.snapshot.art,
+                    cardTitle = state.cardTitle,
+                )
+                AddCoverFor(state = state, onAddCover = onAddCover)
+            }
             is ProfileFetch.Stale -> Column {
                 ProfileCard(
                     profile = fetch.profile,
                     track = state.snapshot.track,
                     mood = state.mood,
                     mobile = state.mobileBadge,
-                    showGlyph = state.showPlaybackGlyph,
-                    showAppIcon = state.showAppIcon,
+                    art = state.snapshot.art,
                     cardTitle = state.cardTitle,
                 )
+                AddCoverFor(state = state, onAddCover = onAddCover)
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -315,6 +320,14 @@ private fun ProfileSection(state: YouUiState) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AddCoverFor(state: YouUiState, onAddCover: () -> Unit) {
+    val track = state.snapshot.track ?: return
+    if (CoverOffer.canAdd(track, state.snapshot.art)) {
+        AddCoverLink(onClick = onAddCover, modifier = Modifier.padding(top = Look.gaps.room))
     }
 }
 

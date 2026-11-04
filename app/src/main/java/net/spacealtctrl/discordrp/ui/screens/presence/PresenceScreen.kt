@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.PauseCircle
 import androidx.compose.material.icons.rounded.PhoneAndroid
@@ -41,10 +42,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil.compose.AsyncImage
 import net.spacealtctrl.discordrp.R
+import net.spacealtctrl.discordrp.settings.CoverSource
 import net.spacealtctrl.discordrp.settings.Mood
 import net.spacealtctrl.discordrp.ui.kit.AppScreen
 import net.spacealtctrl.discordrp.ui.kit.Cluster
+import net.spacealtctrl.discordrp.ui.kit.DropRow
 import net.spacealtctrl.discordrp.ui.kit.EmptyCard
+import net.spacealtctrl.discordrp.ui.kit.MenuChoice
 import net.spacealtctrl.discordrp.ui.kit.MoodDot
 import net.spacealtctrl.discordrp.ui.kit.PageTitle
 import net.spacealtctrl.discordrp.ui.kit.PickRow
@@ -87,6 +91,16 @@ fun PresenceScreen(viewModel: PresenceViewModel = hiltViewModel()) {
                         icon = Icons.Rounded.GraphicEq,
                         checked = state.sharing,
                         onToggle = { viewModel.setSharing(!state.sharing) },
+                    )
+                    RowRule()
+                    DropRow(
+                        title = stringResource(R.string.presence_covers_title),
+                        choices = CoverSource.entries.map { source ->
+                            MenuChoice(source, stringResource(source.labelRes()), stringResource(source.blurbRes()))
+                        },
+                        selected = state.coverSource,
+                        onPick = viewModel::pickCoverSource,
+                        icon = Icons.Rounded.Image,
                     )
                 }
             }
@@ -263,4 +277,14 @@ private fun ShareFacet.icon(): ImageVector = when (this) {
     ShareFacet.HIDE_PAUSED -> Icons.Rounded.PauseCircle
     ShareFacet.SONG_AS_TITLE -> Icons.Rounded.Title
     ShareFacet.ARTIST_AS_TITLE -> Icons.Rounded.Title
+}
+
+private fun CoverSource.labelRes(): Int = when (this) {
+    CoverSource.MUSICBRAINZ -> R.string.cover_source_musicbrainz
+    CoverSource.MUSICBRAINZ_DEEZER -> R.string.cover_source_musicbrainz_deezer
+}
+
+private fun CoverSource.blurbRes(): Int = when (this) {
+    CoverSource.MUSICBRAINZ -> R.string.cover_source_musicbrainz_blurb
+    CoverSource.MUSICBRAINZ_DEEZER -> R.string.cover_source_musicbrainz_deezer_blurb
 }

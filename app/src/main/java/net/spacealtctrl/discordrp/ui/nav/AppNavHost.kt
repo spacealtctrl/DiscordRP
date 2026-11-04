@@ -29,6 +29,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import net.spacealtctrl.discordrp.ui.screens.cover.AddAlbumScreen
+import net.spacealtctrl.discordrp.ui.screens.cover.AddCoverScreen
 import kotlin.math.sign
 import net.spacealtctrl.discordrp.settings.Stash
 import net.spacealtctrl.discordrp.ui.screens.alerts.AlertsScreen
@@ -41,6 +43,8 @@ import net.spacealtctrl.discordrp.ui.theme.Pace
 
 private const val ROUTE_SETUP = "setup"
 private const val ROUTE_LOGIN = "login"
+private const val ROUTE_ADD_COVER = "add-cover"
+private const val ROUTE_ADD_ALBUM = "add-album"
 
 private const val MODAL_DISMISS_MS = 200
 
@@ -160,7 +164,11 @@ fun AppNavHost(notificationAccess: State<Boolean>) {
                 }
 
                 composable(Dock.HOME.route) {
-                    HomeScreen(notificationAccess = notificationAccess)
+                    HomeScreen(
+                        notificationAccess = notificationAccess,
+                        onAddCover = { navController.navigate(ROUTE_ADD_COVER) },
+                        onAddAlbum = { navController.navigate(ROUTE_ADD_ALBUM) },
+                    )
                 }
                 composable(Dock.PRESENCE.route) {
                     PresenceScreen()
@@ -169,7 +177,16 @@ fun AppNavHost(notificationAccess: State<Boolean>) {
                     AlertsScreen()
                 }
                 composable(Dock.YOU.route) {
-                    YouScreen(onSignIn = { navController.navigate(ROUTE_LOGIN) })
+                    YouScreen(
+                        onSignIn = { navController.navigate(ROUTE_LOGIN) },
+                        onAddCover = { navController.navigate(ROUTE_ADD_COVER) },
+                    )
+                }
+                composable(ROUTE_ADD_ALBUM) {
+                    AddAlbumScreen(onBack = { navController.popBackStack() })
+                }
+                composable(ROUTE_ADD_COVER) {
+                    AddCoverScreen(onBack = { navController.popBackStack() })
                 }
             }
         }

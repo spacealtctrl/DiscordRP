@@ -365,11 +365,6 @@ fun LoginScreen(
     }
 }
 
-/**
- * A pasted token is a credential left behind in the clipboard. Clear it once
- * the app has its copy, but only when the clipboard still holds exactly what
- * was pasted.
- */
 private fun clearClipboardIfMatches(context: Context, token: String) {
     val clipboard = context.getSystemService(ClipboardManager::class.java) ?: return
     val clip = clipboard.primaryClip ?: return

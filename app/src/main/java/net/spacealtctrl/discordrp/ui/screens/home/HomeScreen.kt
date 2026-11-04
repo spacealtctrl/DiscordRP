@@ -54,30 +54,35 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import net.spacealtctrl.discordrp.R
+import net.spacealtctrl.discordrp.presence.CoverOffer
 import net.spacealtctrl.discordrp.presence.NowPlaying
+import net.spacealtctrl.discordrp.presence.PublishedArt
 import net.spacealtctrl.discordrp.settings.PowerMode
 import net.spacealtctrl.discordrp.ui.kit.AppScreen
 import net.spacealtctrl.discordrp.ui.kit.AvatarBadge
 import net.spacealtctrl.discordrp.ui.kit.CalloutBanner
 import net.spacealtctrl.discordrp.ui.kit.CalloutTone
-import net.spacealtctrl.discordrp.ui.kit.Cluster
+import net.spacealtctrl.discordrp.ui.kit.DropRow
 import net.spacealtctrl.discordrp.ui.kit.EqualizerBars
 import net.spacealtctrl.discordrp.ui.kit.GlowCard
+import net.spacealtctrl.discordrp.ui.kit.MenuChoice
 import net.spacealtctrl.discordrp.ui.kit.StatusRibbon
 import net.spacealtctrl.discordrp.ui.kit.HeroArt
 import net.spacealtctrl.discordrp.ui.kit.MoodSheet
 import net.spacealtctrl.discordrp.ui.kit.PageTitle
-import net.spacealtctrl.discordrp.ui.kit.PickRow
-import net.spacealtctrl.discordrp.ui.kit.RowRule
 import net.spacealtctrl.discordrp.ui.kit.SectionHeader
 import net.spacealtctrl.discordrp.ui.kit.ThumbSwitch
 import net.spacealtctrl.discordrp.ui.kit.TrackTimeline
+import net.spacealtctrl.discordrp.ui.screens.cover.AddAlbumLink
+import net.spacealtctrl.discordrp.ui.screens.cover.AddCoverLink
 import net.spacealtctrl.discordrp.ui.theme.Look
 import net.spacealtctrl.discordrp.ui.theme.Pace
 
 @Composable
 fun HomeScreen(
     notificationAccess: State<Boolean>,
+    onAddCover: () -> Unit,
+    onAddAlbum: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
@@ -154,7 +159,7 @@ fun HomeScreen(
             item(key = "now-playing") {
                 Column(settleIntoPlace()) {
                     SectionHeader(stringResource(R.string.home_now_playing_header))
-                    NowPlayingCard(state = state)
+                    NowPlayingCard(state = state, onAddCover = onAddCover, onAddAlbum = onAddAlbum)
                 }
             }
 
@@ -171,17 +176,20 @@ fun HomeScreen(
             item(key = "power") {
                 Column(settleIntoPlace()) {
                     SectionHeader(stringResource(R.string.home_power_header))
-                    Cluster {
-                        PowerMode.entries.reversed().forEachIndexed { index, mode ->
-                            PickRow(
-                                title = stringResource(mode.labelRes()),
-                                subtitle = stringResource(mode.blurbRes()),
-                                icon = mode.icon(),
-                                selected = state.powerMode == mode,
-                                onPick = { viewModel.setPowerMode(mode) },
-                            )
-                            if (index != PowerMode.entries.lastIndex) RowRule(inset = false)
-                        }
+                    GlowCard(
+                        glowing = true,
+                        contentPadding = PaddingValues(
+                            horizontal = Look.gaps.open - Look.gaps.room,
+                            vertical = Look.gaps.snug,
+                        ),
+                    ) {
+                        DropRow(
+                            choices = PowerMode.entries.reversed().map { mode ->
+                                MenuChoice(mode, stringResource(mode.labelRes()), stringResource(mode.blurbRes()), mode.icon())
+                            },
+                            selected = state.powerMode,
+                            onPick = viewModel::setPowerMode,
+                        )
                     }
                 }
             }
@@ -310,7 +318,7 @@ private fun AutostartCard(on: Boolean, onToggle: () -> Unit) {
 }
 
 @Composable
-private fun NowPlayingCard(state: HomeUiState) {
+private fun NowPlayingCard(state: HomeUiState, onAddCover: () -> Unit, onAddAlbum: () -> Unit) {
     val track = state.snapshot.track
 
     GlowCard(glowing = track != null) {
@@ -347,8 +355,9 @@ private fun NowPlayingCard(state: HomeUiState) {
             } else {
                 TrackHero(
                     track = current,
-                    showGlyph = state.showPlaybackGlyph,
-                    showAppIcon = state.showAppIcon,
+                    art = state.snapshot.art.takeIf { current.isSameSong(state.snapshot.track) },
+                    onAddCover = onAddCover,
+                    onAddAlbum = onAddAlbum,
                 )
             }
         }
@@ -356,13 +365,7 @@ private fun NowPlayingCard(state: HomeUiState) {
 }
 
 @Composable
-private fun TrackHero(track: NowPlaying, showGlyph: Boolean, showAppIcon: Boolean) {
-    val context = LocalContext.current
-    val appIcon = remember(track.appPackage, showAppIcon) {
-        if (!showAppIcon) null
-        else runCatching { context.packageManager.getApplicationIcon(track.appPackage) }.getOrNull()
-    }
-
+private fun TrackHero(track: NowPlaying, art: PublishedArt?, onAddCover: () -> Unit, onAddAlbum: () -> Unit) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             EqualizerBars(playing = track.playing)
@@ -377,7 +380,7 @@ private fun TrackHero(track: NowPlaying, showGlyph: Boolean, showAppIcon: Boolea
         }
         Spacer(Modifier.height(Look.gaps.room))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            HeroArt(track = track, appIcon = appIcon, showGlyph = showGlyph)
+            HeroArt(track = track, art = art)
             Column(Modifier.padding(start = Look.gaps.room)) {
                 Text(
                     text = track.title,
@@ -408,6 +411,12 @@ private fun TrackHero(track: NowPlaying, showGlyph: Boolean, showAppIcon: Boolea
             }
         }
         TrackTimeline(startMillis = track.startedAtMillis, endMillis = track.endsAtMillis)
+        when {
+            CoverOffer.canAddAlbum(track, art) ->
+                AddAlbumLink(onClick = onAddAlbum, modifier = Modifier.padding(top = Look.gaps.room))
+            CoverOffer.canAdd(track, art) ->
+                AddCoverLink(onClick = onAddCover, modifier = Modifier.padding(top = Look.gaps.room))
+        }
     }
 }
 

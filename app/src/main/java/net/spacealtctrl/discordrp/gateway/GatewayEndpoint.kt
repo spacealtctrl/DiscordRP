@@ -2,10 +2,6 @@ package net.spacealtctrl.discordrp.gateway
 
 import java.net.URI
 
-/**
- * Resume endpoints arrive over the gateway itself, so they are validated
- * before a credential-bearing reconnect can use them.
- */
 internal object GatewayEndpoint {
     const val DEFAULT_URL = "wss://gateway.discord.gg/?v=10&encoding=json"
 
@@ -28,9 +24,6 @@ internal object GatewayEndpoint {
     }
 
     private fun isGatewayHost(host: String): Boolean {
-        // Anchored to Discord's own three-label hosts: gateway.discord.gg or a
-        // sharded name such as gateway-us-east1-b.discord.gg. Suffix checks
-        // alone would also accept crafted names beneath discord.gg.
         val labels = host.split('.')
         if (labels.size != 3) return false
         if (labels[1] != "discord" || labels[2] != "gg") return false

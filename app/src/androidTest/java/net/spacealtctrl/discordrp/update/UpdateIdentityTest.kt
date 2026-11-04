@@ -33,12 +33,6 @@ class UpdateIdentityTest {
         )
     }
 
-    /**
-     * The critical negative: the archive carries our package id but was signed
-     * by someone else. Rotation is deliberately not trusted here either; since
-     * no APK signing lineage is verified, a rotated key is indistinguishable
-     * from a foreign one and must fail closed.
-     */
     @Test
     fun rejectsTheSamePackageSignedByAnotherOrRotatedKey() {
         val apk = asset("update-foreign-signer.apk")

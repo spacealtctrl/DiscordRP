@@ -63,6 +63,7 @@ class PlaybackScanner @Inject constructor(
             stopped = state == PlaybackState.STATE_STOPPED,
             startedAtMillis = timeline?.first,
             endsAtMillis = timeline?.second,
+            durationMillis = metadata.getLong(MediaMetadata.METADATA_KEY_DURATION).takeIf { it > 0 },
         )
     }
 

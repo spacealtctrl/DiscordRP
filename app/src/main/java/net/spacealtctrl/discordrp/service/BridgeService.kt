@@ -17,7 +17,6 @@ import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
 import android.os.Build
-import android.os.Debug
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -34,7 +33,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import net.spacealtctrl.discordrp.BuildConfig
 import net.spacealtctrl.discordrp.R
 import net.spacealtctrl.discordrp.gateway.Gateway
 import net.spacealtctrl.discordrp.gateway.GatewayEngine
@@ -67,6 +65,7 @@ class BridgeService : Service() {
     private var gateway: Gateway? = null
     private var refreshJob: Job? = null
     private var redialJob: Job? = null
+    private var artRetryJob: Job? = null
     private var wakeLock: PowerManager.WakeLock? = null
     private var netCallback: ConnectivityManager.NetworkCallback? = null
 
@@ -84,24 +83,19 @@ class BridgeService : Service() {
         ensureStatusChannel()
         goForeground(statusNotification(track = null))
 
-        // Every start path goes through startForegroundService, so the
-        // foreground obligation must be met before this early stop.
-        if (BuildConfig.DEBUG && Debug.isDebuggerConnected()) {
-            log.error(TAG, "Debugger attached; refusing to run the bridge")
-            stopSelf()
-            return
-        }
-
         if (!stash.signedIn) {
             log.error(TAG, "No account on file; the bridge cannot start")
             stopSelf()
             return
         }
         if (stash.authToken.isBlank()) {
-            // The sealed blob is present but cannot be opened (key lost or
-            // invalidated); drop it instead of dialing with an empty token.
-            log.error(TAG, "Stored login is unreadable; clearing it")
-            stash.clearToken()
+            if (stash.tokenLost) {
+                log.error(TAG, "Stored login is unreadable; clearing it")
+                stash.clearToken()
+            } else {
+                log.warn(TAG, "Stored login could not be opened; trying again later")
+                scheduleWatchdogAlarm()
+            }
             stopSelf()
             return
         }
@@ -122,6 +116,10 @@ class BridgeService : Service() {
             ACTION_STOP -> stopSelf()
             ACTION_REFRESH -> scheduleRefresh(delayMs = 0)
             ACTION_CHECKUP -> checkup()
+            ACTION_RECHECK_ART -> intent.getStringExtra(EXTRA_COVER_KEY)?.let { key ->
+                artRegistry.noteUpload(key)
+                scheduleRefresh(delayMs = 0)
+            }
             ACTION_RESTART -> scope.launch {
                 log.info(TAG, "Restart action: redialing the gateway")
                 gateway?.redial()
@@ -192,9 +190,6 @@ class BridgeService : Service() {
 
     private fun onAuthRejected() {
         log.error(TAG, "Discord no longer accepts the stored login; clearing it and stopping")
-        // The close code is terminal, so the credential will never work again.
-        // Dropping the sealed blob keeps the app from redialing a dead token and
-        // makes the next launch land on the setup screen.
         stash.clearToken()
         notificationManager().notify(
             STATUS_NOTICE_ID,
@@ -331,7 +326,18 @@ class BridgeService : Service() {
         }
 
         BridgeFeed.trackChanged(track)
-        publish(composer.listeningUpdate(track))
+        val composed = composer.compose(track)
+        BridgeFeed.artPublished(track, composed.art)
+        publish(composed.update)
+        if (composed.art.retrySoon) scheduleArtRetry()
+    }
+
+    private fun scheduleArtRetry() {
+        if (artRetryJob?.isActive == true) return
+        artRetryJob = scope.launch {
+            delay(ART_RETRY_MS)
+            scheduleRefresh(delayMs = 0)
+        }
     }
 
     private fun postStatusNotice(track: NowPlaying?) {
@@ -450,6 +456,8 @@ class BridgeService : Service() {
         const val ACTION_RESTART = "net.spacealtctrl.discordrp.bridge.RESTART"
         const val ACTION_REFRESH = "net.spacealtctrl.discordrp.bridge.REFRESH"
         const val ACTION_CHECKUP = "net.spacealtctrl.discordrp.bridge.CHECKUP"
+        const val ACTION_RECHECK_ART = "net.spacealtctrl.discordrp.bridge.RECHECK_ART"
+        private const val EXTRA_COVER_KEY = "cover_key"
 
         const val STATUS_CHANNEL_ID = "bridge.status.quiet"
         private const val STATUS_NOTICE_ID = 41_002
@@ -463,6 +471,7 @@ class BridgeService : Service() {
         private const val STUCK_GATEWAY_MS = 2 * 60 * 1000L
         private const val NETWORK_SETTLE_MS = 3_000L
         private const val NETWORK_REDIAL_GRACE_MS = 10_000L
+        private const val ART_RETRY_MS = 160_000L
 
         private val _alive = MutableStateFlow(false)
 
@@ -473,5 +482,10 @@ class BridgeService : Service() {
 
         fun checkupIntent(context: Context): Intent =
             Intent(context, BridgeService::class.java).setAction(ACTION_CHECKUP)
+
+        fun recheckArtIntent(context: Context, coverKey: String): Intent =
+            Intent(context, BridgeService::class.java)
+                .setAction(ACTION_RECHECK_ART)
+                .putExtra(EXTRA_COVER_KEY, coverKey)
     }
 }

@@ -9,6 +9,11 @@ import net.spacealtctrl.discordrp.settings.Mood
 import net.spacealtctrl.discordrp.settings.Stash
 import javax.inject.Inject
 
+data class ComposedPresence(
+    val update: PresenceUpdate,
+    val art: PublishedArt,
+)
+
 data class ActivityLines(
     val name: String,
     val details: String?,
@@ -23,7 +28,7 @@ class PresenceComposer @Inject constructor(
     fun quietUpdate(mood: Mood = stash.mood): PresenceUpdate =
         PresenceUpdate(status = mood.wire, afk = false, since = 0L)
 
-    suspend fun listeningUpdate(track: NowPlaying): PresenceUpdate {
+    suspend fun compose(track: NowPlaying): ComposedPresence {
         val lines = arrangeLines(
             title = track.title,
             artist = track.artist.takeIf { stash.showArtist },
@@ -34,16 +39,16 @@ class PresenceComposer @Inject constructor(
         )
 
         val art = resolveArt(track)
-        val assets = art?.let { (large, small) ->
+        val assets = art.large?.let { large ->
             ArtRefs(
                 largeImage = large,
-                smallImage = small,
+                smallImage = art.small,
                 largeText = ActivityCard.clip(lines.largeText),
                 smallText = ActivityCard.clip(track.appLabel),
             )
         }
 
-        return PresenceUpdate(
+        val update = PresenceUpdate(
             status = stash.mood.wire,
             afk = true,
             since = 0L,
@@ -62,27 +67,41 @@ class PresenceComposer @Inject constructor(
                 ),
             ),
         )
+        return ComposedPresence(update = update, art = art)
     }
 
-    private suspend fun resolveArt(track: NowPlaying): Pair<String, String?>? {
+    private suspend fun resolveArt(track: NowPlaying): PublishedArt {
         val cover = ArtSource.Cover(
             cacheKey = coverKey(track),
-            artist = track.albumArtist ?: track.artist,
+            artist = track.artist,
+            albumArtist = track.albumArtist,
             album = track.album,
-        ).takeIf { !track.album.isNullOrBlank() }
+            title = track.title,
+            durationMillis = track.durationMillis,
+        ).takeIf { !track.album.isNullOrBlank() || track.title.isNotBlank() }
         val icon = ArtSource.AppIcon(track.appPackage).takeIf { stash.showAppIcon }
 
         val coverRef = artRegistry.resolve(cover)
         val glyphRef = artRegistry.resolve(playbackGlyph(track))
-        if (coverRef != null) {
-            return coverRef to (glyphRef ?: artRegistry.resolve(icon))
+        val (large, small) = if (coverRef != null) {
+            coverRef to (glyphRef ?: artRegistry.resolve(icon))
+        } else {
+            val iconRef = artRegistry.resolve(icon)
+            when {
+                iconRef != null -> iconRef to glyphRef
+                glyphRef != null -> glyphRef to null
+                else -> null to null
+            }
         }
-        val iconRef = artRegistry.resolve(icon)
-        return when {
-            iconRef != null -> iconRef to glyphRef
-            glyphRef != null -> glyphRef to null
-            else -> null
-        }
+        return PublishedArt(
+            large = large,
+            small = small,
+            coverKey = cover?.cacheKey,
+            missingGroupId = cover?.let { artRegistry.missingGroupFor(it.cacheKey) },
+            deezerAlbumId = cover?.let { artRegistry.deezerAlbumFor(it.cacheKey) },
+            albumMissing = cover?.let { artRegistry.albumMissingFor(it.cacheKey) } == true,
+            retrySoon = cover?.let { artRegistry.coverPending(it.cacheKey) } == true,
+        )
     }
 
     private fun playbackGlyph(track: NowPlaying): ArtSource.Remote? {
@@ -95,8 +114,11 @@ class PresenceComposer @Inject constructor(
         return ArtSource.Remote(url = "$GLYPH_BASE/$name.png", cacheKey = "glyph:$name")
     }
 
-    private fun coverKey(track: NowPlaying): String =
-        "${track.albumArtist ?: track.artist}|${track.album}".lowercase()
+    private fun coverKey(track: NowPlaying): String {
+        val artist = track.albumArtist ?: track.artist
+        val album = track.album?.takeIf { it.isNotBlank() }
+        return if (album != null) "$artist|$album".lowercase() else "$artist|song:${track.title}".lowercase()
+    }
 
     companion object {
         const val LISTENING = 2

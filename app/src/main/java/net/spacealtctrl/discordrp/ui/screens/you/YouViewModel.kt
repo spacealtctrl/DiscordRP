@@ -30,8 +30,6 @@ data class YouUiState(
     val snapshot: BridgeSnapshot = BridgeSnapshot(),
     val mood: Mood = Mood.ONLINE,
     val mobileBadge: Boolean = true,
-    val showPlaybackGlyph: Boolean = false,
-    val showAppIcon: Boolean = true,
     val cardTitle: String? = null,
 )
 
@@ -61,16 +59,11 @@ class YouViewModel @Inject constructor(
             snapshot = snapshot,
             mood = stash.mood,
             mobileBadge = stash.mobileBadge,
-            showPlaybackGlyph = stash.showPlaybackGlyph,
-            showAppIcon = stash.showAppIcon,
             cardTitle = snapshot.track?.let { PresenceComposer.cardName(it, stash) },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), YouUiState())
 
     fun signOut() {
-        // clearApplicationUserData removes the sealed blob with the rest of the
-        // sandbox; clearToken drops the Keystore key and WebView copies first so
-        // neither survives even if the data wipe is interrupted.
         runCatching {
             CookieManager.getInstance().removeAllCookies(null)
             CookieManager.getInstance().flush()

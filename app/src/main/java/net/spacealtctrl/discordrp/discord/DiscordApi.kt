@@ -2,6 +2,7 @@ package net.spacealtctrl.discordrp.discord
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.timeout
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -11,9 +12,11 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.spacealtctrl.discordrp.BuildConfig
+import net.spacealtctrl.discordrp.presence.DiscordMedia
 import net.spacealtctrl.discordrp.settings.Stash
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -112,8 +115,27 @@ class DiscordApi @Inject constructor(
         "mp:" + assets.first().path
     }
 
+    suspend fun mediaShows(reference: String): Boolean? {
+        val probe = DiscordMedia.thumbnail(reference) ?: return false
+        return try {
+            val response = http.get(probe) { timeout { requestTimeoutMillis = MEDIA_CHECK_TIMEOUT_MS } }
+            val image = response.headers[HttpHeaders.ContentType].orEmpty().startsWith("image/")
+            when (response.status.value) {
+                in 200..299 -> image
+                in 400..499 -> false
+                else -> null
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     private fun io.ktor.client.request.HttpRequestBuilder.sign() {
-        header(HttpHeaders.Authorization, stash.authToken)
+        val token = stash.authToken
+        check(token.isNotBlank()) { "Login could not be read" }
+        header(HttpHeaders.Authorization, token)
     }
 
     private suspend inline fun <reified T> HttpResponse.expect(): T {
@@ -123,8 +145,6 @@ class DiscordApi @Inject constructor(
 
     private fun HttpResponse.raiseForStatus() {
         if (status.value == 401) {
-            // Unauthorized is permanent for this credential; drop it so the
-            // service cannot redial with a token Discord already rejected.
             stash.clearToken()
         }
         if (status.value !in 200..299) throw ApiRefusal(status.value)
@@ -144,3 +164,5 @@ class DiscordApi @Inject constructor(
 class ApiRefusal(val status: Int) : Exception("Discord API answered $status") {
     val permanent: Boolean get() = status == 401 || status == 403 || status == 404
 }
+
+private const val MEDIA_CHECK_TIMEOUT_MS = 20_000L

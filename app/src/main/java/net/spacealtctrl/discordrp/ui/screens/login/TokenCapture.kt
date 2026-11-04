@@ -20,9 +20,6 @@ import java.util.concurrent.atomic.AtomicReference
 
 private const val LOGIN_URL = "https://discord.com/login"
 
-// Discord's login page removes the storage API from the top window once its
-// scripts run, but a same-origin iframe still reaches the same storage area.
-// Read through the iframe and drop it again in the same turn.
 private const val TOKEN_READ =
     "(function(){var f=null;try{" +
         "f=document.createElement('iframe');" +
@@ -38,8 +35,6 @@ private const val TOKEN_READ =
 private const val CAPTURE_INTERVAL_MS = 500L
 private const val CAPTURE_WINDOW_MS = 20_000L
 
-// A blank document commits in milliseconds; the timeout only exists so a
-// wedged renderer cannot keep the storage wipe from ever running.
 private const val CLEANUP_TIMEOUT_MS = 3_000L
 
 private const val FALLBACK_UA =
@@ -70,9 +65,6 @@ private class WebViewSessionOps(
     }
 
     override fun clearStorage() {
-        // The WebView keeps a second copy of the token in localStorage while the
-        // user is signed in. The blank document has committed by now, so no
-        // Discord script is left to write it back.
         WebStorage.getInstance().deleteAllData()
     }
 
@@ -101,8 +93,6 @@ fun TokenCapture(onToken: (String) -> Unit) {
     val sessionRef = remember { AtomicReference<SessionCleanup?>(null) }
     AndroidView(
         onRelease = { webView ->
-            // The composable owns the view until here; detaching first keeps a
-            // deferred destroy legal.
             (webView.parent as? ViewGroup)?.removeView(webView)
             sessionRef.get()?.cancel()
         },
@@ -141,9 +131,6 @@ fun TokenCapture(onToken: (String) -> Unit) {
                         capturing = true
                         val deadline = System.currentTimeMillis() + CAPTURE_WINDOW_MS
 
-                        // The token lands in storage a moment after Discord
-                        // starts navigating to /app, so keep reading until the
-                        // deadline instead of sampling a fixed number of times.
                         fun read() {
                             view.evaluateJavascript(TOKEN_READ) { result ->
                                 if (session.isCancelled) return@evaluateJavascript
@@ -151,11 +138,6 @@ fun TokenCapture(onToken: (String) -> Unit) {
                                 if (token != null && !session.isCancelled &&
                                     LoginWebPolicy.isDiscordUrl(view.url)
                                 ) {
-                                    // Hide the page and hand it to the cleanup
-                                    // sequence: it stops the page, swaps in
-                                    // about:blank, waits for that commit, then
-                                    // wipes storage and awaits cookie removal
-                                    // before the token is accepted.
                                     view.visibility = View.GONE
                                     session.start { onToken(token) }
                                     return@evaluateJavascript
@@ -190,8 +172,6 @@ fun TokenCapture(onToken: (String) -> Unit) {
                         return false
                     }
 
-                    // The first composited frame can stay white while the bottom
-                    // sheet animates in; repaint once the page is committed.
                     override fun onPageCommitVisible(view: WebView, url: String) {
                         super.onPageCommitVisible(view, url)
                         view.postInvalidateOnAnimation()

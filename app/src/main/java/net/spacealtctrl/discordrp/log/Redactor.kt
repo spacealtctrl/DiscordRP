@@ -1,10 +1,5 @@
 package net.spacealtctrl.discordrp.log
 
-/**
- * Every log line and crash report passes through here. Exception messages and
- * headers can quote credentials or signed URLs, so the text is stripped before
- * it leaves the process -- including debug builds.
- */
 internal object Redactor {
     private const val REPLACEMENT = "[redacted]"
 
@@ -16,8 +11,6 @@ internal object Redactor {
         "\\b(?:mfa\\.[A-Za-z0-9_-]{20,}" +
             "|[A-Za-z0-9_-]{23,28}\\.[A-Za-z0-9_-]{6,7}\\.[A-Za-z0-9_-]{27,40})\\b",
     )
-    // Opaque credentials are long and base64-like; no message the app logs
-    // legitimately needs a run that long.
     private val BASE64 = Regex("[A-Za-z0-9+/_-]{60,}={0,2}")
     private val QUERY = Regex(
         "(?i)([?&](?:" +

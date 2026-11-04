@@ -12,6 +12,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -62,6 +63,7 @@ fun GlowCard(
     modifier: Modifier = Modifier,
     glowing: Boolean = false,
     onClick: (() -> Unit)? = null,
+    contentPadding: PaddingValues = PaddingValues(Look.gaps.open),
     content: @Composable () -> Unit,
 ) {
     val f by animateFloatAsState(
@@ -105,6 +107,6 @@ fun GlowCard(
                 .matchParentSize()
                 .background(Look.palette.sheen),
         )
-        Column(Modifier.padding(Look.gaps.open)) { content() }
+        Column(Modifier.padding(contentPadding)) { content() }
     }
 }

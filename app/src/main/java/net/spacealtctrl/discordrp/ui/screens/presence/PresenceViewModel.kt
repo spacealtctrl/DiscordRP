@@ -17,9 +17,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import net.spacealtctrl.discordrp.presence.ArtRegistry
 import net.spacealtctrl.discordrp.presence.BridgeFeed
 import net.spacealtctrl.discordrp.presence.NowPlaying
 import net.spacealtctrl.discordrp.service.BridgeService
+import net.spacealtctrl.discordrp.settings.CoverSource
 import net.spacealtctrl.discordrp.settings.Mood
 import net.spacealtctrl.discordrp.settings.Stash
 import javax.inject.Inject
@@ -50,6 +52,7 @@ enum class BadgeMode { APP_ICON, GLYPH, NONE }
 data class PresenceUiState(
     val sharing: Boolean = true,
     val mood: Mood = Mood.ONLINE,
+    val coverSource: CoverSource = CoverSource.MUSICBRAINZ,
     val mobileBadge: Boolean = true,
     val facets: Map<ShareFacet, Boolean> = emptyMap(),
     val players: List<PlayerChoice> = emptyList(),
@@ -67,6 +70,7 @@ data class PresenceUiState(
 class PresenceViewModel @Inject constructor(
     @ApplicationContext private val appContext: Context,
     private val stash: Stash,
+    private val artRegistry: ArtRegistry,
 ) : ViewModel() {
     private data class InstalledApp(
         val label: String,
@@ -105,6 +109,7 @@ class PresenceViewModel @Inject constructor(
         PresenceUiState(
             sharing = stash.presenceEnabled,
             mood = stash.mood,
+            coverSource = stash.coverSource,
             mobileBadge = stash.mobileBadge,
             facets = ShareFacet.entries.associateWith { facetValue(it) },
             players = players,
@@ -163,6 +168,14 @@ class PresenceViewModel @Inject constructor(
 
     fun pickMood(mood: Mood) {
         stash.mood = mood
+        nudgeBridge()
+    }
+
+    fun pickCoverSource(source: CoverSource) {
+        if (stash.coverSource == source) return
+        stash.coverSource = source
+        artRegistry.coverSourceChanged()
+        BridgeFeed.artForgotten()
         nudgeBridge()
     }
 

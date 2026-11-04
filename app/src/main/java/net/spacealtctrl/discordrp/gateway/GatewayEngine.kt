@@ -259,23 +259,32 @@ class GatewayEngine(
     }
 
     private suspend fun announceSelf() {
+        val token = tokenProvider()
+        if (token.isBlank()) return holdOff()
         log.info(TAG, "-> identify")
         transmit(
             Op.IDENTIFY,
             GatewayCodec.encode(
-                IdentifyRequest(token = tokenProvider(), properties = ClientStamp.forMobileBadge(mobileBadge))
+                IdentifyRequest(token = token, properties = ClientStamp.forMobileBadge(mobileBadge))
             ),
         )
     }
 
     private suspend fun resumeSession() {
+        val token = tokenProvider()
+        if (token.isBlank()) return holdOff()
         log.info(TAG, "-> resume seq=$seq")
         transmit(
             Op.RESUME,
             GatewayCodec.encode(
-                ResumeRequest(token = tokenProvider(), sessionId = sessionId.orEmpty(), seq = seq)
+                ResumeRequest(token = token, sessionId = sessionId.orEmpty(), seq = seq)
             ),
         )
+    }
+
+    private suspend fun holdOff() {
+        log.warn(TAG, "Login could not be read; dialing again later")
+        runCatching { socket?.close(CloseReason(APP_CLOSE_CODE, "login unreadable")) }
     }
 
     private suspend fun sendBeat() {

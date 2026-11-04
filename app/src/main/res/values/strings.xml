@@ -167,4 +167,20 @@
     <string name="crash_share_cta">Share report</string>
     <string name="crash_close_cta">Close</string>
     <string name="crash_trace_header">Stack trace</string>
+    <string name="hero_no_picture">No picture on Discord</string>
+    <string name="cover_missing_note">MusicBrainz has no cover for this album yet. Add it and it shows for everyone.</string>
+    <string name="cover_add_action">Add this cover to MusicBrainz</string>
+    <string name="cover_add_title">Add cover</string>
+    <string name="cover_add_note">Sign in to MusicBrainz if asked. Your cover is already attached as Front. Check it is the official cover of this release, then tap Enter edit at the bottom.</string>
+    <string name="cover_add_failed">Could not open MusicBrainz for this album. Try again later.</string>
+    <string name="cover_add_sent">Sent to MusicBrainz. Discord shows it once the Cover Art Archive has it.</string>
+    <string name="presence_covers_title">Album covers</string>
+    <string name="cover_source_musicbrainz">MusicBrainz</string>
+    <string name="cover_source_musicbrainz_blurb">Covers from MusicBrainz and the Cover Art Archive only.</string>
+    <string name="cover_source_musicbrainz_deezer">MusicBrainz (+ Deezer backup)</string>
+    <string name="cover_source_musicbrainz_deezer_blurb">MusicBrainz first. When it has no cover, Deezer fills in.</string>
+    <string name="album_add_action">Add this album to MusicBrainz</string>
+    <string name="album_add_title">Add album</string>
+    <string name="album_add_failed">Could not get this album from Deezer. Try again later.</string>
+    <string name="album_add_sent">Album and cover sent to MusicBrainz. Discord switches to it once the Cover Art Archive has it.</string>
 </resources>

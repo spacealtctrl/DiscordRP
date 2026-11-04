@@ -16,7 +16,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -25,6 +24,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.QuestionMark
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,19 +46,22 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.delay
+import net.spacealtctrl.discordrp.R
+import net.spacealtctrl.discordrp.presence.DiscordMedia
 import net.spacealtctrl.discordrp.presence.NowPlaying
+import net.spacealtctrl.discordrp.presence.PublishedArt
 import net.spacealtctrl.discordrp.ui.theme.Look
 import net.spacealtctrl.discordrp.ui.theme.Pace
 import kotlin.math.PI
@@ -282,15 +287,19 @@ private fun DrawScope.drawGlyph(shape: GlyphShape, alpha: Float) {
 @Composable
 fun HeroArt(
     track: NowPlaying,
-    appIcon: Any?,
+    art: PublishedArt?,
     modifier: Modifier = Modifier,
     size: Dp = 96.dp,
-    showGlyph: Boolean = false,
 ) {
     val context = LocalContext.current
+    val frame = HeroFrame(
+        song = "${track.appPackage}|${track.title}",
+        picture = art?.let { DiscordMedia.url(it.large) ?: NO_PICTURE },
+        badge = DiscordMedia.url(art?.small),
+    )
     AnimatedContent(
-        targetState = track,
-        contentKey = { "${it.appPackage}|${it.title}" },
+        targetState = frame,
+        contentKey = { it.song },
         transitionSpec = {
             (
                 scaleIn(initialScale = 0.88f, animationSpec = Pace.pop()) +
@@ -310,33 +319,34 @@ fun HeroArt(
                 contentAlignment = Alignment.Center,
             ) {
                 Crossfade(
-                    targetState = current.artwork,
+                    targetState = current.picture,
                     animationSpec = tween(Pace.EASY, easing = Pace.settle),
                     label = "heroCover",
-                ) { art ->
+                ) { picture ->
                     Box(Modifier.size(size), contentAlignment = Alignment.Center) {
-                        when {
-                            art != null -> Image(
-                                bitmap = art.asImageBitmap(),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.size(size),
+                        when (picture) {
+                            null -> ShimmerBlock(Modifier.size(size), height = size, shape = Look.corners.card)
+                            NO_PICTURE -> Icon(
+                                imageVector = Icons.Rounded.QuestionMark,
+                                contentDescription = stringResource(R.string.hero_no_picture),
+                                tint = Look.palette.inkGhost,
+                                modifier = Modifier.size(size * 0.4f),
                             )
-                            showGlyph -> PlaybackGlyph(track = current, size = size * 0.55f)
-                            appIcon != null -> AsyncImage(
+                            else -> AsyncImage(
                                 model = ImageRequest.Builder(context)
-                                    .data(appIcon)
+                                    .data(picture)
                                     .crossfade(Pace.CROSSFADE)
                                     .build(),
                                 contentDescription = null,
-                                modifier = Modifier.size(size * 0.55f),
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.size(size),
                             )
                         }
                     }
                 }
             }
             AnimatedVisibility(
-                visible = current.artwork != null && (showGlyph || appIcon != null),
+                visible = current.badge != null,
                 enter = scaleIn(initialScale = 0.6f, animationSpec = Pace.pop()) +
                     fadeIn(tween(Pace.QUICK, easing = Pace.settle)),
                 exit = fadeOut(tween(Pace.BLINK, easing = Pace.dart)),
@@ -349,22 +359,22 @@ fun HeroArt(
                         .background(Look.palette.canvas),
                     contentAlignment = Alignment.Center,
                 ) {
-                    if (showGlyph) {
-                        PlaybackGlyph(track = current, size = 22.dp)
-                    } else {
-                        AsyncImage(
-                            model = ImageRequest.Builder(context)
-                                .data(appIcon)
-                                .crossfade(Pace.CROSSFADE)
-                                .build(),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(22.dp)
-                                .clip(CircleShape),
-                        )
-                    }
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(current.badge)
+                            .crossfade(Pace.CROSSFADE)
+                            .build(),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(22.dp)
+                            .clip(CircleShape),
+                    )
                 }
             }
         }
     }
 }
+
+private data class HeroFrame(val song: String, val picture: String?, val badge: String?)
+
+private const val NO_PICTURE = ""

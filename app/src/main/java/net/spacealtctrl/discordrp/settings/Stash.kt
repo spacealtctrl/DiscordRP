@@ -31,8 +31,6 @@ class Stash private constructor(
     }
 
     var authToken: String
-        // Decrypt on demand: the plaintext must not survive in the process
-        // beyond the call that needs it.
         get() = readToken()
         set(value) {
             val token = value.trim()
@@ -47,11 +45,6 @@ class Stash private constructor(
             }
         }
 
-    /**
-     * Drops the stored credential and its Keystore key. Deleting the key first
-     * makes an escaped copy of the sealed blob useless even if the process dies
-     * before the preference write lands.
-     */
     fun clearToken() {
         TokenVault.forget(tokenAlias)
         write {
@@ -67,8 +60,6 @@ class Stash private constructor(
         val legacy = prefs.getString(KEY_TOKEN, null).orEmpty()
         if (legacy.isBlank()) return ""
 
-        // One-time migration from the pre-Keystore format. If sealing fails the
-        // plaintext copy is still dropped; a token must not stay readable on disk.
         val sealed = runCatching { TokenVault.encrypt(legacy, tokenAlias) }.getOrNull()
         write {
             if (sealed != null) putString(KEY_TOKEN_ENC, sealed)
@@ -93,11 +84,12 @@ class Stash private constructor(
         get() = prefs.getString(KEY_PROFILE_CACHE, null).orEmpty()
         set(value) = write { putString(KEY_PROFILE_CACHE, value) }
 
-    // Presence check only: reading the sealed blob is enough to tell the UI
-    // whether a session exists, and avoids decrypting on every recomposition.
     val signedIn: Boolean
         get() = prefs.contains(KEY_TOKEN_ENC) ||
             !prefs.getString(KEY_TOKEN, null).isNullOrBlank()
+
+    val tokenLost: Boolean
+        get() = prefs.getString(KEY_TOKEN_ENC, null)?.let { TokenVault.isLost(it, tokenAlias) } == true
 
     var presenceEnabled: Boolean
         get() = prefs.getBoolean(KEY_PRESENCE_ON, true)
@@ -206,12 +198,46 @@ class Stash private constructor(
         set(value) = write { putString(KEY_COVER_ASSETS, json.encodeToString(value)) }
 
     var coverMisses: Map<String, Long>
-        get() {
-            val raw = prefs.getString(KEY_COVER_MISSES, null) ?: return emptyMap()
-            return runCatching { json.decodeFromString<Map<String, Long>>(raw) }
-                .getOrDefault(emptyMap())
-        }
+        get() = readLongMap(KEY_COVER_MISSES)
         set(value) = write { putString(KEY_COVER_MISSES, json.encodeToString(value)) }
+
+    var coverSource: CoverSource
+        get() = CoverSource.fromStored(prefs.getString(KEY_COVER_SOURCE, null))
+        set(value) = write { putString(KEY_COVER_SOURCE, value.stored) }
+
+    fun dropDeezerCovers() {
+        val kept = coverAssets - coverDeezerAssets
+        write {
+            putString(KEY_COVER_ASSETS, json.encodeToString(kept))
+            remove(KEY_COVER_DEEZER_ASSETS)
+            remove(KEY_COVER_DEEZER_ALBUMS)
+            remove(KEY_COVER_DEEZER_MISSES)
+        }
+    }
+
+    var coverDeezerAssets: Set<String>
+        get() = readSet(KEY_COVER_DEEZER_ASSETS)
+        set(value) = write { putString(KEY_COVER_DEEZER_ASSETS, json.encodeToString(value)) }
+
+    var coverDeezerMisses: Map<String, Long>
+        get() = readLongMap(KEY_COVER_DEEZER_MISSES)
+        set(value) = write { putString(KEY_COVER_DEEZER_MISSES, json.encodeToString(value)) }
+
+    var coverDeezerAlbums: Map<String, String>
+        get() = readMap(KEY_COVER_DEEZER_ALBUMS)
+        set(value) = write { putString(KEY_COVER_DEEZER_ALBUMS, json.encodeToString(value)) }
+
+    var coverMissGroups: Map<String, String>
+        get() = readMap(KEY_COVER_MISS_GROUPS)
+        set(value) = write { putString(KEY_COVER_MISS_GROUPS, json.encodeToString(value)) }
+
+    var coverAlbumMisses: Set<String>
+        get() = readSet(KEY_COVER_ALBUM_MISSES)
+        set(value) = write { putString(KEY_COVER_ALBUM_MISSES, json.encodeToString(value)) }
+
+    var coverUploads: Map<String, Long>
+        get() = readLongMap(KEY_COVER_UPLOADS)
+        set(value) = write { putString(KEY_COVER_UPLOADS, json.encodeToString(value)) }
 
     fun dropVideoPlayers() {
         if (prefs.getBoolean(KEY_VIDEO_DROPPED, false)) return
@@ -236,9 +262,27 @@ class Stash private constructor(
                 remove(KEY_ICON_ASSETS)
                 remove(KEY_COVER_ASSETS)
                 remove(KEY_COVER_MISSES)
+                remove(KEY_COVER_MISS_GROUPS)
+                remove(KEY_COVER_UPLOADS)
+                remove(KEY_COVER_DEEZER_ALBUMS)
+                remove(KEY_COVER_ALBUM_MISSES)
+                remove(KEY_COVER_DEEZER_ASSETS)
+                remove(KEY_COVER_DEEZER_MISSES)
                 putLong(KEY_ART_PURGED_AT, now)
             }
         }
+    }
+
+    private fun readLongMap(key: String): Map<String, Long> {
+        val raw = prefs.getString(key, null) ?: return emptyMap()
+        return runCatching { json.decodeFromString<Map<String, Long>>(raw) }
+            .getOrDefault(emptyMap())
+    }
+
+    private fun readSet(key: String): Set<String> {
+        val raw = prefs.getString(key, null) ?: return emptySet()
+        return runCatching { json.decodeFromString<Set<String>>(raw) }
+            .getOrDefault(emptySet())
     }
 
     private fun readMap(key: String): Map<String, String> {
@@ -256,10 +300,6 @@ class Stash private constructor(
                 shared ?: Stash(context).also { shared = it }
             }
 
-        /**
-         * A store that does not share preferences with the signed-in app. Tests
-         * use it so a run can never clobber the developer's live session.
-         */
         internal fun isolated(context: Context, prefsName: String): Stash =
             Stash(context, prefsName, "${TokenVault.ALIAS}.$prefsName")
 
@@ -295,10 +335,27 @@ class Stash private constructor(
         private const val KEY_AUTOSTART = "app.start_on_boot"
         private const val KEY_SETUP_DONE = "app.setup_complete"
 
-        private const val KEY_ICON_ASSETS = "art.icon_assets"
-        private const val KEY_COVER_ASSETS = "art.cover_assets.v2"
-        private const val KEY_COVER_MISSES = "art.cover_misses.v2"
-        private val LEGACY_ART_KEYS = listOf("art.cover_assets", "art.cover_misses")
+        private const val KEY_ICON_ASSETS = "art.icon_assets.v2"
+        private const val KEY_COVER_ASSETS = "art.cover_assets.v5"
+        private const val KEY_COVER_MISSES = "art.cover_misses.v5"
+        private const val KEY_COVER_ALBUM_MISSES = "art.cover_album_misses.v1"
+        private const val KEY_COVER_DEEZER_ASSETS = "art.cover_deezer_assets.v1"
+        private const val KEY_COVER_DEEZER_MISSES = "art.cover_deezer_misses.v1"
+        private const val KEY_COVER_MISS_GROUPS = "art.cover_miss_groups.v1"
+        private const val KEY_COVER_UPLOADS = "art.cover_uploads.v1"
+        private const val KEY_COVER_SOURCE = "art.cover_source"
+        private const val KEY_COVER_DEEZER_ALBUMS = "art.cover_deezer_albums.v1"
+        private val LEGACY_ART_KEYS = listOf(
+            "art.cover_assets",
+            "art.cover_misses",
+            "art.cover_misses.v2",
+            "art.cover_assets.v2",
+            "art.cover_assets.v3",
+            "art.cover_misses.v3",
+            "art.cover_assets.v4",
+            "art.cover_misses.v4",
+            "art.icon_assets",
+        )
         private const val KEY_ART_PURGED_AT = "art.purged_at"
 
         private val DAY_MS = 24.hours.inWholeMilliseconds

@@ -79,7 +79,6 @@ class SessionCleanupTest {
         )
         assertEquals(0, cleaned)
 
-        // A late blank commit or capture result must not restart the normal path.
         cleanup.onPageFinished(SessionCleanup.BLANK_URL)
         cleanup.start { cleaned++ }
         assertEquals(
@@ -99,7 +98,6 @@ class SessionCleanupTest {
         ops.cookieCallback!!.invoke()
         assertTrue(cleanup.isCancelled)
 
-        // The pending evaluateJavascript callback returns after cleanup finished.
         cleanup.start { cleaned++ }
         assertEquals(0, cleaned)
     }

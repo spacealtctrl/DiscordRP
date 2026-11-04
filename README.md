@@ -23,7 +23,7 @@ play shows on your profile.
 ## Features
 
 - [x] DMs and mentions as notifications, with reply and mark as read from the shade
-- [x] Music rich presence from any player, with album art
+- [x] Music rich presence from any player, with album art from MusicBrainz
 - [x] Choose what notifies you: everything, mentions and DMs, or DMs only
 - [x] Set your status and mobile badge from your phone
 - [x] Starts on boot and stays connected
@@ -60,10 +60,24 @@ No analytics, no crash reporting, and no server in the middle. The app talks to 
 MusicBrainz, and the Cover Art Archive directly. Your login stays on the device and is
 removed by signing out.
 
+Album art comes from MusicBrainz and the Cover Art Archive. In the Presence tab, under
+**Album covers**, you can pick **MusicBrainz (+ Deezer backup)**. The app then asks Deezer
+directly, and only when MusicBrainz has no cover.
+
+## Help [MusicBrainz](https://musicbrainz.org)
+
+With **MusicBrainz (+ Deezer backup)** on, DiscordRP shows a button on Home when
+MusicBrainz is missing the album/cover. Tap it to add the album (filled in from Deezer
+with its cover) or just the cover (from your player), so the cover shows for everyone and
+loads faster from then on.
+
 ## Credits
 
 The rich presence implementation draws on ideas from [Kizzy](https://github.com/dead8309/Kizzy)
 by **dead8309**.
+
+Security hardening of token storage, the login page and updates by **cutieway** in
+[#31](../../pull/31).
 
 ## License
 

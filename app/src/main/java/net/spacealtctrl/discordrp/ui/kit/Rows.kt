@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
@@ -20,19 +21,27 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.ExpandMore
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
@@ -254,3 +263,92 @@ fun StepRow(
         }
     }
 }
+
+data class MenuChoice<T>(
+    val value: T,
+    val title: String,
+    val subtitle: String? = null,
+    val icon: ImageVector? = null,
+)
+
+@Composable
+fun <T> DropRow(
+    choices: List<MenuChoice<T>>,
+    selected: T,
+    onPick: (T) -> Unit,
+    title: String? = null,
+    icon: ImageVector? = null,
+) {
+    val current = choices.firstOrNull { it.value == selected }
+    var open by remember { mutableStateOf(false) }
+    val turn by animateFloatAsState(
+        targetValue = if (open) 180f else 0f,
+        animationSpec = tween(Pace.QUICK, easing = Pace.settle),
+    )
+    Box {
+        RowShell(onClick = { open = true }) {
+            LeadIcon(icon ?: current?.icon, Look.palette.inkFaint)
+            if (title != null) {
+                RowLabels(title, current?.title)
+            } else {
+                RowLabels(current?.title.orEmpty(), current?.subtitle)
+            }
+            Icon(
+                imageVector = Icons.Rounded.ExpandMore,
+                contentDescription = null,
+                tint = Look.palette.inkGhost,
+                modifier = Modifier.rotate(turn),
+            )
+        }
+        DropdownMenu(
+            expanded = open,
+            onDismissRequest = { open = false },
+            shape = Look.corners.card,
+            containerColor = Look.palette.raised,
+            modifier = Modifier.widthIn(max = MENU_MAX_WIDTH),
+        ) {
+            choices.forEach { choice ->
+                DropdownMenuItem(
+                    text = { MenuLabels(choice) },
+                    leadingIcon = choice.icon?.let { choiceIcon ->
+                        { Icon(imageVector = choiceIcon, contentDescription = null, tint = Look.palette.inkFaint) }
+                    },
+                    onClick = {
+                        open = false
+                        onPick(choice.value)
+                    },
+                    trailingIcon = {
+                        if (choice.value == selected) {
+                            Icon(
+                                imageVector = Icons.Rounded.Check,
+                                contentDescription = null,
+                                tint = Look.palette.accent,
+                            )
+                        }
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun <T> MenuLabels(choice: MenuChoice<T>) {
+    Column(Modifier.padding(vertical = Look.gaps.snug)) {
+        Text(
+            text = choice.title,
+            style = MaterialTheme.typography.titleMedium,
+            color = Look.palette.ink,
+        )
+        choice.subtitle?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = Look.palette.inkGhost,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
+    }
+}
+
+private val MENU_MAX_WIDTH = 300.dp

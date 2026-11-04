@@ -134,8 +134,6 @@ class UpdateHub @Inject constructor(
     }
 
     private suspend fun download(update: AppUpdate): File {
-        // Rechecked here as well as when the feed was parsed: this is the point
-        // where the URL turns into a network request.
         if (!UpdatePolicy.isTrustedApkUrl(update.apkUrl)) error("untrusted update url")
         val dir = File(context.cacheDir, UPDATES_DIR).apply { mkdirs() }
         val safeVersion = update.version.replace(Regex("[^A-Za-z0-9._-]"), "_")
@@ -180,7 +178,6 @@ class UpdateHub @Inject constructor(
             UpdateIdentity.verify(context, file)
             return file
         } catch (e: Throwable) {
-            // No partial file may survive a failed or cancelled download.
             file.delete()
             throw e
         }

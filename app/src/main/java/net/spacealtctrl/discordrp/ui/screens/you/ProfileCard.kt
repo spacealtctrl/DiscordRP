@@ -36,6 +36,7 @@ import coil.request.ImageRequest
 import net.spacealtctrl.discordrp.R
 import net.spacealtctrl.discordrp.discord.DiscordProfile
 import net.spacealtctrl.discordrp.presence.NowPlaying
+import net.spacealtctrl.discordrp.presence.PublishedArt
 import net.spacealtctrl.discordrp.settings.Mood
 import net.spacealtctrl.discordrp.ui.kit.HeroArt
 import net.spacealtctrl.discordrp.ui.kit.MobileMark
@@ -57,8 +58,7 @@ fun ProfileCard(
     mood: Mood,
     mobile: Boolean,
     modifier: Modifier = Modifier,
-    showGlyph: Boolean = false,
-    showAppIcon: Boolean = true,
+    art: PublishedArt? = null,
     cardTitle: String? = null,
 ) {
     val context = LocalContext.current
@@ -127,7 +127,7 @@ fun ProfileCard(
 
                 if (track != null) {
                     Spacer(Modifier.height(16.dp))
-                    ActivityBlock(track, showGlyph, showAppIcon, cardTitle)
+                    ActivityBlock(track, art, cardTitle)
                 }
 
                 val bio = profile?.bio
@@ -272,16 +272,9 @@ private fun BioText(bio: String) {
 @Composable
 private fun ActivityBlock(
     track: NowPlaying,
-    showGlyph: Boolean,
-    showAppIcon: Boolean,
+    art: PublishedArt?,
     cardTitle: String?,
 ) {
-    val context = LocalContext.current
-    val appIcon = androidx.compose.runtime.remember(track.appPackage, showAppIcon) {
-        if (!showAppIcon) null
-        else runCatching { context.packageManager.getApplicationIcon(track.appPackage) }.getOrNull()
-    }
-
     Column(
         Modifier
             .fillMaxWidth()
@@ -292,7 +285,7 @@ private fun ActivityBlock(
         InnerLabel(stringResource(R.string.profile_listening_heading, cardTitle ?: track.appLabel))
         Spacer(Modifier.height(4.dp))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-            HeroArt(track = track, appIcon = appIcon, size = 58.dp, showGlyph = showGlyph)
+            HeroArt(track = track, art = art, size = 58.dp)
             Column(
                 Modifier
                     .padding(start = 14.dp)
